@@ -16,15 +16,16 @@ const gen = {
   rivers: (v) => v.myTurn ? v.hand.map((t) => ({ type: 'tile', tileId: t.id })) : [],
   'shifting-tower': (v) => v.myTurn ? [{ type: 'drop', col: Math.floor(Math.random() * 7) }] : [],
   'moth-flame': (v) => v.myTurn ? [{ type: 'cell', r: Math.floor(Math.random()*9), c: Math.floor(Math.random()*9) }, ...v.frontier.map(([r,c]) => ({ type:'cell', r, c }))] : [],
+  'the-killer': (v, p) => { const t = v.names.map((_, i) => i).filter((i) => v.alive[i]); return [{ type: 'ready' }, { type: 'vote', target: pick(t) }, { type: 'kill', target: pick(t) }, { type: 'spy', target: pick(t) }]; },
 };
 
 let bad = 0;
 for (const g of Object.values(GAMES)) {
   const results = {};
-  for (let n = g.min; n <= Math.min(g.max, 6); n++) {
+  for (let n = g.min; n <= Math.min(g.max, g.id === 'the-killer' ? 10 : 6); n++) {
     for (let trial = 0; trial < 60; trial++) {
       const names = Array.from({ length: n }, (_, i) => 'P' + i);
-      const st = g.setup(names, { round: trial });
+      const st = g.setup(names, { round: trial, options: { killers: 1 + (trial % 3), spy: trial % 2 === 0, minutes: 1 } });
       let steps = 0, ok = 0;
       while (!st.over && steps < 20000) {
         steps++;

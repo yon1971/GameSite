@@ -64,3 +64,22 @@ async function loadGames() {
   return list;
 }
 window.loadGames = loadGames;
+
+// Settings controls for games that have options (e.g. The Killer)
+U.optionsHTML = function (game, values) {
+  if (!game || !game.options || !game.options.length) return '';
+  return `<div class="col opts">${game.options.map((o) => {
+    const v = values[o.key];
+    if (o.type === 'bool') return `<label class="row" style="justify-content:space-between"><span>${U.esc(o.label)}</span><button class="small ${v ? '' : 'secondary'}" data-opt="${o.key}" data-val="${v ? 0 : 1}">${v ? 'Yes' : 'No'}</button></label>`;
+    return `<div class="row" style="justify-content:space-between"><span>${U.esc(o.label)}</span><span class="row" style="gap:6px"><button class="secondary small" data-opt="${o.key}" data-val="${v - 1}" ${v <= o.min ? 'disabled' : ''}>−</button><b style="min-width:1.6em;text-align:center">${v}</b><button class="secondary small" data-opt="${o.key}" data-val="${v + 1}" ${v >= o.max ? 'disabled' : ''}>+</button></span></div>`;
+  }).join('')}</div>`;
+};
+U.bindOptions = function (root, emit) {
+  U.on(root, '[data-opt]', (b) => emit('room:options', { key: b.dataset.opt, value: Number(b.dataset.val) }));
+};
+
+// Live countdowns: any element with data-deadline (ms timestamp) shows m:ss
+U.fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+setInterval(() => {
+  document.querySelectorAll('[data-deadline]').forEach((el) => { el.textContent = U.fmt(Number(el.dataset.deadline) - Date.now()); });
+}, 250);
