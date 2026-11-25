@@ -169,3 +169,20 @@ html { background: var(--bg); }
 .grid-board { width: min(100%, 640px); }
 .phone #picker { grid-template-columns: 1fr 1fr; }
 .phone #picker .game-tile { padding: 10px; }
+
+/* The Killer */
+.tk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tk-p { background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius); padding: 14px; text-align: center; font-weight: 800; font-size: 1.1em; position: relative; }
+.tk-p.dead { opacity: .5; text-decoration: line-through; background: var(--bg2); }
+.tk-p .badge { position: absolute; top: 6px; right: 8px; font-size: .9em; text-decoration: none; }
+.tk-p .role { display: block; font-size: .8em; color: var(--muted); text-decoration: none; margin-top: 4px; }
+.tk-timer { font-family: 'Fredoka', monospace; font-size: 4rem; color: var(--accent); line-height: 1; }
+.tk-news { font-size: 1.5rem; }
+.tk-role { text-align: center; padding: 22px; border-radius: var(--radius); font-family: 'Fredoka', sans-serif; font-size: 2rem; cursor: pointer; user-select: none; }
+.tk-role.villager { background: linear-gradient(160deg, #2b8a3e, #1b4d2a); }
+.tk-role.killer { background: linear-gradient(160deg, #c92a2a, #5c0f0f); }
+.tk-role.spy { background: linear-gradient(160deg, #5f3dc4, #2b1a66); }
+.tk-role.hide { background: repeating-linear-gradient(45deg, #2f5479 0 10px, #234266 10px 20px); font-size: 1.2rem; }
+.tk-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tk-pick button { border-radius: 12px; }
+.tk-pick button.on { outline: 3px solid #fff; }

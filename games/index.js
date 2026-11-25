@@ -7,5 +7,6 @@ const list = [
   require('./rivers'),
   require('./shifting-tower'),
   require('./moth-flame'),
+  require('./the-killer'),
 ];
 module.exports = Object.fromEntries(list.map((g) => [g.id, g]));

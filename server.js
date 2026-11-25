@@ -15,7 +15,7 @@ app.get('/health', (req, res) => res.send('ok'));
 app.get('/api/games', (req, res) => res.json(Object.values(GAMES).map(gameInfo)));
 
 function gameInfo(g) {
-  return { id: g.id, name: g.name, min: g.min, max: g.max, blurb: g.blurb, rules: g.rules, icon: g.icon };
+  return { id: g.id, name: g.name, min: g.min, max: g.max, blurb: g.blurb, rules: g.rules, icon: g.icon, options: g.options || [] };
 }
 
 const rooms = new Map();
@@ -34,10 +34,19 @@ function roomInfo(room) {
   return {
     code: room.code,
     gameId: room.gameId,
+    options: room.gameId ? currentOptions(room) : {},
     phase: room.phase,
     joinUrl: room.joinUrl,
     players: room.players.map((p, i) => ({ name: p.name, connected: p.connected, seat: i })),
   };
+}
+
+function currentOptions(room) {
+  const g = GAMES[room.gameId];
+  const saved = (room.options && room.options[room.gameId]) || {};
+  const out = {};
+  for (const o of (g && g.options) || []) out[o.key] = saved[o.key] !== undefined ? saved[o.key] : o.default;
+  return out;
 }
 
 function broadcast(room) {
@@ -100,7 +109,7 @@ io.on('connection', (socket) => {
       const name = String(data.name || '').trim().slice(0, 16);
       if (!name) return cb && cb({ ok: false, error: 'Enter a name' });
       if (room.phase !== 'lobby') return cb && cb({ ok: false, error: 'Game already started. Wait for the next one.' });
-      if (room.players.length >= 8) return cb && cb({ ok: false, error: 'Room is full' });
+      if (room.players.length >= 16) return cb && cb({ ok: false, error: 'Room is full' });
       if (room.players.some((pl) => pl.name.toLowerCase() === name.toLowerCase())) return cb && cb({ ok: false, error: 'That name is taken' });
       p = { name, token: crypto.randomUUID(), socketId: null, connected: false };
       room.players.push(p);
@@ -144,12 +153,31 @@ io.on('connection', (socket) => {
     try {
       room.plays = room.plays || {};
       const round = room.plays[room.gameId] || 0;
-      room.state = game.setup(room.players.map((p) => p.name), { round });
+      room.state = game.setup(room.players.map((p) => p.name), { round, options: currentOptions(room) });
       room.plays[room.gameId] = round + 1;
       room.phase = 'playing';
     } catch (e) {
       return cb && cb({ ok: false, error: e.message });
     }
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
+
+  socket.on('room:options', (data, cb) => {
+    const room = joined && rooms.get(joined.code);
+    if (!room || !canControl(room, socket) || room.phase === 'playing') return cb && cb({ ok: false, error: 'Not allowed' });
+    const g = GAMES[room.gameId];
+    const o = g && (g.options || []).find((x) => x.key === data.key);
+    if (!o) return cb && cb({ ok: false, error: 'Unknown setting' });
+    let v = data.value;
+    if (o.type === 'bool') v = !!v;
+    else {
+      v = Math.round(Number(v));
+      if (!Number.isFinite(v)) return cb && cb({ ok: false, error: 'Bad value' });
+      v = Math.max(o.min, Math.min(o.max, v));
+    }
+    room.options = room.options || {};
+    room.options[room.gameId] = { ...(room.options[room.gameId] || {}), [o.key]: v };
     cb && cb({ ok: true });
     broadcast(room);
   });
@@ -206,6 +234,23 @@ io.on('connection', (socket) => {
     broadcast(room);
   });
 });
+
+// Timed games: let them advance on their own clock.
+setInterval(() => {
+  for (const room of rooms.values()) {
+    if (room.phase !== 'playing' || !room.state) continue;
+    const g = GAMES[room.gameId];
+    if (!g.tick) continue;
+    try {
+      if (g.tick(room.state, Date.now())) {
+        if (room.state.over) room.phase = 'over';
+        broadcast(room);
+      }
+    } catch (e) {
+      console.error('tick failed', room.code, e);
+    }
+  }
+}, 1000);
 
 setInterval(() => {
   const now = Date.now();

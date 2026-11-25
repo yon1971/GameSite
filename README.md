@@ -21,6 +21,7 @@ Run locally: `npm install && npm start`, then open http://localhost:3000. `npm t
 | Rivers | 2 | Original hex tile game |
 | Shifting Tower | 2 | Original four-in-a-row variant |
 | Moth & Flame | 2 | Original grid game |
+| The Killer | 4-16 | Social deduction with secret roles |
 
 Full rules are shown in the app (Rules button). Rule choices made for the originals:
 
@@ -30,6 +31,7 @@ Full rules are shown in the app (Rules button). Rule choices made for the origin
 - **Rivers**: radius-4 hex map, 34 tiles (straight, gentle and sharp bends), hand of 3. A river reaching the edge scores 1 per tile; one that runs into another tile dries up for 0. New springs appear near the middle.
 - **Shifting Tower**: 7×6. After each move the column under the arrow loses its bottom disc, and the arrow moves right. Mover is checked first; 80-move cap is a draw.
 - **Moth & Flame**: 9×9, flame starts in the centre. Moths place 2 per turn and go first; flame spreads 1 square orthogonally. Flame wins at the edge, moths win by enclosing it. Roles swap each rematch.
+- **The Killer**: settings before starting are number of killers (1-5, capped so killers start as a minority), spy on/off, and talking minutes per round (1-15). Talking ends when the timer runs out or every living player taps Ready. Voting then lasts up to 90 seconds: everyone (killers too, to blend in) votes to eliminate; the most votes is out and their role is revealed, a tie means nobody is out. Killers secretly pick a non-killer and all living killers must agree or nobody dies; they see each other's picks. The spy investigates one player per round and learns if they are a killer. The next round's screen shows who was voted out and who was killed. Villagers win when no killers remain; killers win when they equal or outnumber everyone else.
 - **Crazy Eights**: draw one if you can't (or won't) play, and you may play that card. If the deck is empty and nobody can play, lowest penalty hand wins.
 - **Rummy**: aces low, sets of 3-4, runs of 3+, lay-offs allowed, can't discard the card just taken from the discard pile. Winner scores the other hands' card values.
 

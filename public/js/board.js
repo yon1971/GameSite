@@ -64,8 +64,9 @@ function render({ room: rm, view }) {
   // stage
   const stage = $('stage');
   if (!inGame) {
-    stage.innerHTML = `<div><h1 class="logo">Game <span>Night</span></h1><p class="muted">Room <b>${rm.code}</b>. Choose a game:</p></div><div class="game-grid" id="picker">${GAME_LIST.map((g) => `<div class="game-tile ${g.id === rm.gameId ? 'selected' : ''}" data-id="${g.id}"><div class="ic">${g.icon}</div><h3>${U.esc(g.name)}</h3><p>${g.min === g.max ? g.min : g.min + '-' + g.max} players</p><p style="margin-top:6px">${U.esc(g.blurb)}</p></div>`).join('')}</div>${game ? `<div class="panel"><h2>How to play ${U.esc(game.name)}</h2><ol>${game.rules.map((r) => `<li>${U.esc(r)}</li>`).join('')}</ol></div>` : ''}`;
+    stage.innerHTML = `<div><h1 class="logo">Game <span>Night</span></h1><p class="muted">Room <b>${rm.code}</b>. Choose a game:</p></div><div class="game-grid" id="picker">${GAME_LIST.map((g) => `<div class="game-tile ${g.id === rm.gameId ? 'selected' : ''}" data-id="${g.id}"><div class="ic">${g.icon}</div><h3>${U.esc(g.name)}</h3><p>${g.min === g.max ? g.min : g.min + '-' + g.max} players</p><p style="margin-top:6px">${U.esc(g.blurb)}</p></div>`).join('')}</div>${game && game.options.length ? `<div class="panel"><h2>Settings</h2><div style="max-width:420px">${U.optionsHTML(game, rm.options)}</div></div>` : ''}${game ? `<div class="panel"><h2>How to play ${U.esc(game.name)}</h2><ol>${game.rules.map((r) => `<li>${U.esc(r)}</li>`).join('')}</ol></div>` : ''}`;
     U.on(stage, '.game-tile', (t) => emit('room:select', { gameId: t.dataset.id }));
+    U.bindOptions(stage, emit);
   } else {
     const ui = GameUI[rm.gameId];
     ui.board(stage, view);

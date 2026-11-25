@@ -66,7 +66,9 @@ function render(s) {
       </div>
       ${captain ? `<div class="panel col" style="margin-top:12px"><h3>👑 You're the captain</h3><p class="muted" style="margin:0">Pick a game and start when everyone's in.</p>
         <div class="game-grid" id="picker">${GAME_LIST.map((g) => `<div class="game-tile ${g.id === room.gameId ? 'selected' : ''}" data-id="${g.id}"><span class="ic" style="font-size:1.4rem">${g.icon}</span> <b>${U.esc(g.name)}</b><p>${g.min === g.max ? g.min : g.min + '-' + g.max} players</p></div>`).join('')}</div>
+        ${game ? U.optionsHTML(game, room.options) : ''}
         ${game ? `<button id="startBtn">Start ${U.esc(game.name)}</button>` : ''}</div>` : ''}`;
+    U.bindOptions(app, emit);
     U.on(app, '#picker .game-tile', (t) => emit('room:select', { gameId: t.dataset.id }));
     const sb = document.getElementById('startBtn');
     if (sb) sb.onclick = () => emit('room:start');
