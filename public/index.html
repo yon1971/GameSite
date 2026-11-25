@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>" />
+<title>Game Night</title>
+</head>
+<body>
+<main class="landing">
+  <h1 class="logo">Game <span>Night</span></h1>
+  <p class="muted">Put the board on a big screen. Everyone plays from their phone.</p>
+  <div class="hero">
+    <div class="panel col">
+      <h2>📺 Host on this screen</h2>
+      <p class="muted" style="margin:0">Open this on a TV, laptop or tablet everyone can see. You'll get a room code and QR code to join.</p>
+      <a href="/board.html"><button style="width:100%">Create a room</button></a>
+    </div>
+    <form class="panel col" id="joinForm">
+      <h2>📱 Join with your phone</h2>
+      <input id="code" placeholder="Room code (e.g. KQZT)" maxlength="4" autocapitalize="characters" autocomplete="off" />
+      <button type="submit">Join</button>
+    </form>
+  </div>
+  <h2>The games</h2>
+  <div class="game-grid" id="games"></div>
+</main>
+<script src="/js/common.js"></script>
+<script>
+  document.getElementById('joinForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const c = document.getElementById('code').value.trim().toUpperCase();
+    if (c.length === 4) location.href = '/play.html?room=' + c; else U.toast('Enter the 4-letter code');
+  });
+  loadGames().then((list) => {
+    const el = document.getElementById('games');
+    el.innerHTML = list.map((g) => `<div class="game-tile" data-id="${g.id}"><div class="ic">${g.icon}</div><h3>${U.esc(g.name)}</h3><p>${g.min === g.max ? g.min : g.min + '-' + g.max} players</p><p style="margin-top:6px">${U.esc(g.blurb)}</p></div>`).join('');
+    U.on(el, '.game-tile', (t) => U.rules(GAME_BY_ID[t.dataset.id]));
+  });
+</script>
+</body>
+</html>
