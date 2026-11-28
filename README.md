@@ -9,6 +9,8 @@ Party board and card games for one shared screen plus everyone's phones.
 
 Run locally: `npm install && npm start`, then open http://localhost:3000. `npm test` plays thousands of random moves in every game to catch crashes.
 
+Version: every page shows a small badge in the bottom-left corner like `v1.1.0 · 7fe0e17` (the version from `package.json` plus the short commit that's deployed). To bump it, change `"version"` in `package.json` (or run `npm version minor --no-git-tag-version`). `/api/version` returns the same info as JSON.
+
 ## Games
 
 | Game | Players | Type |
