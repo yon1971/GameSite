@@ -19,6 +19,8 @@ const gen = {
   'blend-in': (v, p) => [{ type: 'clue', word: pick(['apple', 'big', 'loud two', v.secret || 'hmm', 'x' + Math.floor(Math.random() * 99)]) }, { type: 'vote', target: Math.floor(Math.random() * v.names.length) },
     { type: 'guess', word: pick(['nope', v.word || 'pizza']) }, { type: 'next' }],
   'point-party': (v) => [{ type: 'vote', target: Math.floor(Math.random() * v.names.length) }, { type: 'next' }],
+  'tall-tales': (v, p) => [{ type: 'fake', text: pick(['emus', 'a big dog', 'Moon', '', 'x' + Math.floor(Math.random() * 9)]) },
+    { type: 'vote', option: v.options ? Math.floor(Math.random() * v.options.length) : 0 }, { type: 'next' }],
   'the-killer': (v, p) => { const t = v.names.map((_, i) => i).filter((i) => v.alive[i]); return [{ type: 'vote', target: pick(t) }, { type: 'kill', target: pick(t) }, { type: 'spy', target: pick(t) }]; },
 };
 
@@ -28,7 +30,7 @@ for (const g of Object.values(GAMES)) {
   for (let n = g.min; n <= Math.min(g.max, g.id === 'the-killer' ? 10 : 6); n++) {
     for (let trial = 0; trial < 60; trial++) {
       const names = Array.from({ length: n }, (_, i) => 'P' + i);
-      const st = g.setup(names, { round: trial, options: { killers: 1 + (trial % 3), spy: trial % 2 === 0, imposters: 1 + (trial % 3), rounds: 1 + (trial % 4), laps: 1 + (trial % 2), category: trial % 13, hint: trial % 2 === 0, self: trial % 3 !== 0, showVotes: trial % 2 === 1 } });
+      const st = g.setup(names, { round: trial, options: { killers: 1 + (trial % 3), spy: trial % 2 === 0, imposters: 1 + (trial % 3), rounds: 1 + (trial % 4), laps: 1 + (trial % 2), category: trial % (g.id === 'tall-tales' ? 7 : 13), hint: trial % 2 === 0, self: trial % 3 !== 0, showVotes: trial % 2 === 1 } });
       let steps = 0, ok = 0;
       while (!st.over && steps < 20000) {
         steps++;

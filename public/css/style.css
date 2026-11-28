@@ -342,3 +342,23 @@ table td { padding: 8px 6px; border-top: 1px solid var(--line-soft); }
 .pp-bar.top .pp-fill { background: var(--accent); }
 .pp-who { grid-column: 1 / -1; font-size: .8em; color: var(--muted); margin-top: -4px; }
 .pp-hist { margin: 0; padding-left: 1.2em; }
+
+/* Tall Tales */
+.tt-q { font-family: 'Fredoka', sans-serif; font-size: 1.3rem; line-height: 1.35; text-align: center; }
+.tt-q.big { font-size: 2.2rem; padding: 28px; }
+.tt-blank { color: var(--accent); letter-spacing: .05em; }
+.tt-truth { color: var(--accent2); text-decoration: underline; text-underline-offset: 6px; }
+.tt-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tt-opt { display: flex; gap: 12px; align-items: flex-start; background: var(--bg2); border: 2px solid var(--line-soft); border-radius: var(--radius-sm); padding: 14px; }
+.tt-opt.true { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(79, 214, 198, .25); }
+.tt-letter { display: inline-grid; place-items: center; min-width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-family: 'Fredoka', sans-serif; font-weight: 700; margin-right: 8px; flex: none; }
+.tt-opt .tt-letter { margin-right: 0; }
+.tt-text { font-weight: 800; font-size: 1.3em; overflow-wrap: anywhere; }
+.tt-tag { display: block; font-size: .85em; color: var(--muted); margin-top: 6px; }
+.tt-tag.true { color: var(--accent2); font-weight: 800; }
+.tt-voters { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: .85em; }
+.tt-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--panel); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+.tt-pick { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.tt-pick button { display: flex; align-items: center; text-align: left; border-radius: var(--radius-sm); min-height: 56px; overflow-wrap: anywhere; }
+.tt-pick button.on { outline: 3px solid #fff; outline-offset: 2px; }
+.tt-pick button:disabled { opacity: .5; }
