@@ -1,6 +1,6 @@
 (() => {
   const playable = (v, c) => c.r === 8 || c.s === v.suit || c.r === v.top.r;
-  const suitBadge = (s) => `<span style="font-size:1.4em;color:${s === 'H' || s === 'D' ? '#ff6b6b' : '#eef4fb'}">${U.SUIT[s]}</span> ${U.SUITNAME[s]}`;
+  const suitBadge = (s) => `<span style="font-size:1.4em;color:${s === 'H' || s === 'D' ? '#ff6b6b' : 'var(--text)'}">${U.SUIT[s]}</span> ${U.SUITNAME[s]}`;
 
   function banner(v) {
     if (v.over) return `<div class="banner win">🏆 ${U.esc(v.names[v.winner])} wins!</div>`;
