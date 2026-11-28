@@ -46,7 +46,7 @@ module.exports = {
       turn: 0,
       over: false,
       winner: null,
-      log: [`The tide is at 1. ${names[0]} goes first.`],
+      log: [{ t: 'The tide is at 1. {name} goes first.', p: { name: names[0] } }],
     };
     draw(st, 0);
     return st;
@@ -67,18 +67,18 @@ module.exports = {
       st.scores[p] += pts;
       st.sets[p].push(cards);
       st.lastPlayed = cards;
-      log(st, `${st.names[p]} played a ${kind === 'run' ? 'current' : 'school'} for ${pts} points.`);
+      log(st, kind === 'run' ? '{name} played a current for {n} points.' : '{name} played a school for {n} points.', { name: st.names[p], n: pts });
     } else if (a.type === 'end') {
       const out = hand.filter((c) => c.v < st.tide);
       st.hands[p] = hand.filter((c) => c.v >= st.tide);
       st.scores[p] -= out.length;
       st.washed = out;
-      if (out.length) log(st, `The tide washed ${out.length} card${out.length > 1 ? 's' : ''} from ${st.names[p]} (-${out.length}).`);
+      if (out.length) log(st, out.length > 1 ? 'The tide washed {n} cards from {name} (-{n}).' : 'The tide washed 1 card from {name} (-1).', { name: st.names[p], n: out.length });
       st.turn = (p + 1) % st.names.length;
       if (st.turn === 0) {
         if (st.tide >= MAX_TIDE) return finish(st);
         st.tide++;
-        log(st, `The tide rises to ${st.tide}!`);
+        log(st, 'The tide rises to {n}!', { n: st.tide });
       }
       st.lastPlayed = [];
       draw(st, st.turn);
@@ -120,5 +120,6 @@ function finish(st) {
   const best = Math.max(...st.scores);
   const winners = st.scores.map((s, i) => (s === best ? i : -1)).filter((i) => i >= 0);
   st.winner = winners.length === 1 ? winners[0] : null;
-  log(st, winners.length === 1 ? `${st.names[winners[0]]} wins with ${best} points!` : `Tie at ${best} points!`);
+  if (winners.length === 1) log(st, '{name} wins with {n} points!', { name: st.names[winners[0]], n: best });
+  else log(st, 'Tie at {n} points!', { n: best });
 }

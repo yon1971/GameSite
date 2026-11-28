@@ -47,7 +47,7 @@ module.exports = {
       over: false,
       winner: null,
       winCells: null,
-      log: [`${names[0]} (red) goes first.`],
+      log: [{ t: '{name} (red) goes first.', p: { name: names[0] } }],
     };
   },
 
@@ -61,13 +61,13 @@ module.exports = {
     st.grid[c].push(p);
     st.moves++;
     st.lastDrop = [c, st.grid[c].length - 1];
-    log(st, `${st.names[p]} dropped in column ${c + 1}.`);
+    log(st, '{name} dropped in column {n}.', { name: st.names[p], n: c + 1 });
     let w = fourIn(st.grid, p);
     if (w) return win(st, p, w);
     const sc = st.shiftCol;
     const fell = st.grid[sc].shift();
     st.lastSink = sc;
-    if (fell !== undefined) log(st, `Column ${sc + 1} sank; a ${fell === 0 ? 'red' : 'yellow'} disc fell out.`);
+    if (fell !== undefined) log(st, fell === 0 ? 'Column {n} sank; a red disc fell out.' : 'Column {n} sank; a yellow disc fell out.', { n: sc + 1 });
     st.shiftCol = (sc + 1) % COLS;
     st.lastDrop = c === sc ? [c, st.grid[c].length - 1] : st.lastDrop;
     const mine = fourIn(st.grid, p);
@@ -113,5 +113,5 @@ function win(st, p, cells) {
   st.over = true;
   st.winner = p;
   st.winCells = cells;
-  log(st, `${st.names[p]} wins with four in a row!`);
+  log(st, '{name} wins with four in a row!', { name: st.names[p] });
 }

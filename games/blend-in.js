@@ -1,13 +1,26 @@
-const { fail, log, shuffle } = require('./util');
-const WORDS = require('./word-lists');
+const { fail, log, tr, shuffle } = require('./util');
+// Same categories in both languages; the room's language picks the list.
+const WORDS = { en: require('./word-lists'), he: require('./word-lists-he') };
 
-const CATEGORIES = Object.keys(WORDS);
+const CATEGORIES = Object.keys(WORDS.en);
 const CATEGORY_CHOICES = ['Mixed (random)', ...CATEGORIES];
+
+const FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
 
 // Lower-case, strip accents and anything that isn't a letter or digit, and a plural ending,
 // so "Pizzas", "pizza!" and "PIZZA" all count as the same word.
+// Hebrew: niqqud and final letters are ignored, and so are a leading "ה" (the) and a ים/ות plural,
+// so "הפיצות" and "פיצה" match.
 function norm(s) {
-  let w = String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  let w = String(s || '').normalize('NFD').replace(/[\u0300-\u036f\u0591-\u05c7]/g, '').toLowerCase();
+  if (/[א-ת]/.test(w)) {
+    w = w.replace(/[^א-ת0-9]/g, '').replace(/[ךםןףץ]/g, (c) => FINALS[c]);
+    if (w.length > 3 && w.startsWith('ה')) w = w.slice(1);
+    if (w.length > 4 && /(ימ|ות)$/.test(w)) w = w.slice(0, -2);
+    else if (w.length > 3 && w.endsWith('ה')) w = w.slice(0, -1);
+    return w;
+  }
+  w = w.replace(/[^a-z0-9]/g, '');
   if (w.length > 4 && /(ss|x|ch|sh|s)es$/.test(w)) w = w.slice(0, -2);
   else if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0, -1);
   return w;
@@ -46,6 +59,7 @@ module.exports = {
     const k = Math.max(1, Math.min(o.imposters || 1, maxImp));
     const st = {
       names,
+      lang: opts.lang === 'he' ? 'he' : 'en',
       impCount: k,
       rounds: Math.max(1, Math.min(10, o.rounds || 3)),
       laps: Math.max(1, Math.min(3, o.laps || 1)),
@@ -57,7 +71,7 @@ module.exports = {
       over: false,
       log: [],
     };
-    if (k < (o.imposters || 1)) log(st, `Only ${k} imposter${k > 1 ? 's' : ''} for ${n} players.`);
+    if (k < (o.imposters || 1)) log(st, k > 1 ? 'Only {k} imposters for {n} players.' : 'Only 1 imposter for {n} players.', { k, n });
     newRound(st);
     return st;
   },
@@ -160,8 +174,9 @@ module.exports = {
 
 function newRound(st) {
   const cat = st.catChoice ? CATEGORIES[st.catChoice - 1] : CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-  let pool = WORDS[cat].filter((w) => !st.used.includes(w));
-  if (!pool.length) pool = WORDS[cat];
+  const list = WORDS[st.lang || 'en'][cat];
+  let pool = list.filter((w) => !st.used.includes(w));
+  if (!pool.length) pool = list;
   const word = shuffle(pool.slice())[0];
   st.used.push(word);
   const seats = shuffle(st.names.map((_, i) => i));
@@ -182,7 +197,7 @@ function newRound(st) {
   st.result = null;
   st.gained = null;
   st.phase = 'clues';
-  log(st, `Word ${st.round} of ${st.rounds}: the category is ${cat}. ${st.names[order[0]]} gives the first clue.`);
+  log(st, 'Word {n} of {m}: the category is {cat}. {name} gives the first clue.', { n: st.round, m: st.rounds, cat: tr(cat), name: st.names[order[0]] });
 }
 
 function resolveVote(st) {
@@ -194,7 +209,7 @@ function resolveVote(st) {
   st.accused = top;
   if (top !== null && st.imposters.includes(top)) {
     st.phase = 'guess';
-    log(st, `${st.names[top]} was accused, and they ARE an imposter! They get one guess at the word.`);
+    log(st, '{name} was accused, and they ARE an imposter! They get one guess at the word.', { name: st.names[top] });
     return;
   }
   finishRound(st, null);
@@ -220,19 +235,20 @@ function finishRound(st, guessedRight) {
   st.gained = gained;
   st.result = { kind: result, counts: st.counts || [] };
   st.phase = 'reveal';
-  const who = imps.map((i) => st.names[i]).join(' and ');
+  const who = imps.map((i) => st.names[i]);
+  const accused = st.accused === null ? '' : st.names[st.accused];
   const msg = {
-    tie: `The vote was a tie, so ${who} got away!`,
-    wrong: `${st.names[st.accused]} was innocent. ${who} got away!`,
-    guessed: `${st.names[st.accused]} was caught but guessed the word "${st.word}"!`,
-    caught: `${st.names[st.accused]} was caught and couldn't guess the word "${st.word}".`,
+    tie: 'The vote was a tie, so {who} got away!',
+    wrong: '{name} was innocent. {who} got away!',
+    guessed: '{name} was caught but guessed the word "{word}"!',
+    caught: '{name} was caught and couldn\'t guess the word "{word}".',
   }[result];
-  log(st, msg);
+  log(st, msg, { who, name: accused, word: st.word });
   if (st.round >= st.rounds) {
     st.over = true;
     const best = Math.max(...st.scores);
     st.winners = st.names.map((_, i) => i).filter((i) => st.scores[i] === best);
-    log(st, `Game over! ${st.winners.map((i) => st.names[i]).join(' and ')} win${st.winners.length > 1 ? '' : 's'} with ${best} points.`);
+    log(st, st.winners.length > 1 ? 'Game over! {who} win with {n} points.' : 'Game over! {who} wins with {n} points.', { who: st.winners.map((i) => st.names[i]), n: best });
   }
 }
 

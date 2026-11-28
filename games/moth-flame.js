@@ -34,7 +34,7 @@ module.exports = {
       over: false,
       winner: null,
       last: [],
-      log: [`${names[flame]} is the Flame. ${names[moth]} (Moths) places first.`],
+      log: [{ t: '{flame} is the Flame. {moth} (Moths) places first.', p: { flame: names[flame], moth: names[moth] } }],
     };
   },
 
@@ -54,13 +54,13 @@ module.exports = {
       if (st.placed >= MOTHS_PER_TURN) {
         st.placed = 0;
         st.turn = st.roles.flame;
-        log(st, `${st.names[p]} placed moths.`);
+        log(st, '{name} placed moths.', { name: st.names[p] });
       }
     } else {
       if (!frontier(st).some(([x, y]) => x === r && y === c)) fail('The flame can only spread next to a burning square');
       st.grid[r][c] = 'F';
       st.last = [[r, c]];
-      log(st, `${st.names[p]} spread the flame.`);
+      log(st, '{name} spread the flame.', { name: st.names[p] });
       if (r === 0 || c === 0 || r === N - 1 || c === N - 1) return end(st, st.roles.flame, 'The flame reached the edge! Flame wins.');
       st.turn = st.roles.moth;
     }

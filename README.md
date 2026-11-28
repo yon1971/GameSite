@@ -11,6 +11,14 @@ Run locally: `npm install && npm start`, then open http://localhost:3000. `npm t
 
 Version: every page shows a small badge in the bottom-left corner like `v1.2.0 · 7fe0e17` (the version from `package.json` plus the short commit that's deployed). To bump it, change `"version"` in `package.json` (or run `npm version minor --no-git-tag-version`). `/api/version` returns the same info as JSON.
 
+## Languages (English / עברית)
+
+Every page has a language button (🌐 עברית / English). The choice is saved per device; without one, Hebrew browsers start in Hebrew. Hebrew pages switch to right-to-left.
+
+- The big screen's language is the room's language. Phones that haven't picked a language follow it; a phone can switch on its own at any time.
+- Word games use content in the room's language when the game starts: Blend In words (`games/word-lists-he.js`), Tall Tales questions (`games/trivia-questions-he.js`). Point Party prompts come in both languages (`games/point-party-prompts.js`), so each screen shows its own.
+- Screen text is translated in the browser: keys are the English text, Hebrew is in `public/i18n/he.js`. Server messages are sent as `{ t: 'English {name}', p: {...} }` so each screen can translate them. `npm test` runs `test/i18n.js`, which fails if any on-screen English string is missing a Hebrew translation.
+
 ## Games
 
 | Game | Players | Type |

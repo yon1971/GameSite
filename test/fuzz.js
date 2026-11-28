@@ -30,7 +30,7 @@ for (const g of Object.values(GAMES)) {
   for (let n = g.min; n <= Math.min(g.max, g.id === 'the-killer' ? 10 : 6); n++) {
     for (let trial = 0; trial < 60; trial++) {
       const names = Array.from({ length: n }, (_, i) => 'P' + i);
-      const st = g.setup(names, { round: trial, options: { killers: 1 + (trial % 3), spy: trial % 2 === 0, imposters: 1 + (trial % 3), rounds: 1 + (trial % 4), laps: 1 + (trial % 2), category: trial % (g.id === 'tall-tales' ? 7 : 13), hint: trial % 2 === 0, self: trial % 3 !== 0, showVotes: trial % 2 === 1 } });
+      const st = g.setup(names, { round: trial, lang: trial % 2 ? 'he' : 'en', options: { killers: 1 + (trial % 3), spy: trial % 2 === 0, imposters: 1 + (trial % 3), rounds: 1 + (trial % 4), laps: 1 + (trial % 2), category: trial % (g.id === 'tall-tales' ? 7 : 13), hint: trial % 2 === 0, self: trial % 3 !== 0, showVotes: trial % 2 === 1 } });
       let steps = 0, ok = 0;
       while (!st.over && steps < 20000) {
         steps++;

@@ -5,31 +5,31 @@
   let editing = false;
   let seenRound = 0;
 
-  const L = (k) => String.fromCharCode(65 + k);
+  const L = (k) => (T.isRTL() ? 'אבגדהוזחטיכלמנסעפצקרשת'[k] || String(k + 1) : String.fromCharCode(65 + k));
   const blank = (q) => U.esc(q).replace('____', '<span class="tt-blank">_____</span>');
-  const chip = (v, i) => `<span class="tt-chip pc${i}"><span class="dot"></span>${U.esc(v.names[i])}</span>`;
+  const chip = (v, i) => `<span class="tt-chip pc${i}"><span class="dot"></span>${U.bdi(v.names[i])}</span>`;
 
   function scores(v) {
     const order = v.names.map((_, i) => i).sort((a, b) => v.scores[b] - v.scores[a]);
-    return `<ul class="plist">${order.map((i) => `<li class="pc${i}"><span class="dot"></span><span class="grow">${U.esc(v.names[i])}</span><b>${v.scores[i]}</b>${v.gained && v.gained[i] ? `<span class="bi-plus">+${v.gained[i]}</span>` : ''}</li>`).join('')}</ul>`;
+    return `<ul class="plist">${order.map((i) => `<li class="pc${i}"><span class="dot"></span><span class="grow">${U.bdi(v.names[i])}</span><b>${v.scores[i]}</b>${v.gained && v.gained[i] ? `<span class="bi-plus">+${v.gained[i]}</span>` : ''}</li>`).join('')}</ul>`;
   }
 
   function header(v) {
     if (v.over) {
-      const w = v.winners.map((i) => U.esc(v.names[i])).join(' and ');
-      return `<div class="banner win">🏆 ${w} win${v.winners.length > 1 ? '' : 's'}!</div>`;
+      const w = U.nameList(v, v.winners, false);
+      return `<div class="banner win">🏆 ${T(v.winners.length > 1 ? '{who} win!' : '{who} wins!', { who: w })}</div>`;
     }
     let sub = '', count = '';
     if (v.phase === 'write') {
-      sub = 'Write a believable fake answer on your phone.';
-      count = `<div class="tk-count"><b>${v.wrote.filter((d) => !d).length}</b><span>still writing</span></div>`;
+      sub = T('Write a believable fake answer on your phone.');
+      count = `<div class="tk-count"><b>${v.wrote.filter((d) => !d).length}</b><span>${T('still writing')}</span></div>`;
     } else if (v.phase === 'vote') {
-      sub = 'Which answer is true? Vote on your phone.';
-      count = `<div class="tk-count"><b>${v.voted.filter((d) => !d).length}</b><span>still to vote</span></div>`;
+      sub = T('Which answer is true? Vote on your phone.');
+      count = `<div class="tk-count"><b>${v.voted.filter((d) => !d).length}</b><span>${T('still to vote')}</span></div>`;
     } else {
-      sub = 'Press "Next question" on any phone to carry on.';
+      sub = T('Press "Next question" on any phone to carry on.');
     }
-    return `<div class="panel row" style="justify-content:space-between;flex-wrap:nowrap;gap:16px"><div style="flex:1;min-width:0"><div class="muted">Question ${v.round} of ${v.rounds} · ${U.esc(v.category)}</div><div class="muted">${sub}</div></div>${count}</div>`;
+    return `<div class="panel row" style="justify-content:space-between;flex-wrap:nowrap;gap:16px"><div style="flex:1;min-width:0"><div class="muted">${T('Question {n} of {m}', { n: v.round, m: v.rounds })} · ${U.esc(T(v.category))}</div><div class="muted">${sub}</div></div>${count}</div>`;
   }
 
   function question(v, big) {
@@ -45,17 +45,17 @@
     return `<div class="tt-opts">${v.options.map((o, k) => {
       let extra = '';
       if (reveal) {
-        const by = o.truth ? '<span class="tt-tag true">✔ The truth</span>' : `<span class="tt-tag">Fake by ${o.authors.map((i) => chip(v, i)).join(' ')}</span>`;
-        const who = o.voters.length ? `<div class="tt-voters"><span class="muted">${o.truth ? 'Found by' : 'Fooled'}</span>${o.voters.map((i) => chip(v, i)).join('')}</div>` : `<div class="tt-voters muted">${o.truth ? 'Nobody found it' : 'Fooled nobody'}</div>`;
+        const by = o.truth ? `<span class="tt-tag true">${T('✔ The truth')}</span>` : `<span class="tt-tag">${T('Fake by {who}', { who: o.authors.map((i) => chip(v, i)).join(' ') })}</span>`;
+        const who = o.voters.length ? `<div class="tt-voters"><span class="muted">${o.truth ? T('Found by') : T('Fooled')}</span>${o.voters.map((i) => chip(v, i)).join('')}</div>` : `<div class="tt-voters muted">${o.truth ? T('Nobody found it') : T('Fooled nobody')}</div>`;
         extra = `${by}${who}`;
       }
-      return `<div class="tt-opt ${reveal && o.truth ? 'true' : ''}"><span class="tt-letter">${L(k)}</span><div class="grow"><div class="tt-text">${U.esc(o.text)}</div>${extra}</div></div>`;
+      return `<div class="tt-opt ${reveal && o.truth ? 'true' : ''}"><span class="tt-letter">${L(k)}</span><div class="grow"><div class="tt-text"><bdi>${U.esc(o.text)}</bdi></div>${extra}</div></div>`;
     }).join('')}</div>`;
   }
 
   function tiles(v) {
     const done = v.phase === 'write' ? v.wrote : v.voted;
-    return `<div class="tk-grid">${v.names.map((n, i) => `<div class="tk-p pc${i}"><span class="badge">${v.phase === 'reveal' || v.over ? '' : done[i] ? '✅' : v.phase === 'write' ? '✍️' : '⏳'}</span><span class="dot"></span>${U.esc(n)}</div>`).join('')}</div>`;
+    return `<div class="tk-grid">${v.names.map((n, i) => `<div class="tk-p pc${i}"><span class="badge">${v.phase === 'reveal' || v.over ? '' : done[i] ? '✅' : v.phase === 'write' ? '✍️' : '⏳'}</span><span class="dot"></span>${U.bdi(n)}</div>`).join('')}</div>`;
   }
 
   function myResult(v) {
@@ -63,16 +63,16 @@
     const k = v.myVote;
     const o = k !== null ? v.options[k] : null;
     const lines = [];
-    if (o && o.truth) lines.push(`🎯 You found the truth! +${v.truthPoints}`);
-    else if (o) lines.push(`😵 You fell for “${U.esc(o.text)}” by ${o.authors.map((i) => U.esc(v.names[i])).join(' and ')}.`);
+    if (o && o.truth) lines.push(T('🎯 You found the truth! +{n}', { n: v.truthPoints }));
+    else if (o) lines.push(T('😵 You fell for “{text}” by {who}.', { text: U.bdi(o.text), who: U.nameList(v, o.authors, false) }));
     const fooled = v.options.filter((x) => !x.truth && x.authors.includes(me)).reduce((n, x) => n + x.voters.length, 0);
-    lines.push(fooled ? `🤥 Your fake fooled ${fooled} player${fooled > 1 ? 's' : ''}! +${fooled * v.foolPoints}` : '🤷 Your fake fooled nobody this time.');
+    lines.push(fooled ? T.n(fooled, '🤥 Your fake fooled 1 player! +{pts}', '🤥 Your fake fooled {n} players! +{pts}', { pts: fooled * v.foolPoints }) : T('🤷 Your fake fooled nobody this time.'));
     return `<div class="panel" style="margin-top:12px">${lines.map((l) => `<div>${l}</div>`).join('')}</div>`;
   }
 
   function fakeForm(key) {
     if (draftKey !== key) { draft = ''; draftKey = key; }
-    return `<form class="row bi-form" id="fakeF" style="flex-wrap:nowrap"><input id="fakeIn" maxlength="40" placeholder="Your fake answer" autocomplete="off" spellcheck="false" value="${U.esc(draft)}"/><button>Send</button></form>`;
+    return `<form class="row bi-form" id="fakeF" style="flex-wrap:nowrap"><input id="fakeIn" maxlength="40" placeholder="${T('Your fake answer')}" autocomplete="off" spellcheck="false" value="${U.esc(draft)}"/><button>${T('Send')}</button></form>`;
   }
 
   function bindForm(root, ctx, rerender) {
@@ -93,8 +93,8 @@
   GameUI['tall-tales'] = {
     board(root, v) {
       root.innerHTML = `${header(v)}${question(v, true)}${v.options ? `<div class="panel">${answers(v)}</div>` : ''}
-        ${v.phase === 'reveal' || v.over ? '' : `<div class="panel"><h3 style="margin-top:0">Players</h3>${tiles(v)}</div>`}
-        <div class="panel"><h3 style="margin-top:0">Scores</h3>${scores(v)}</div>`;
+        ${v.phase === 'reveal' || v.over ? '' : `<div class="panel"><h3 style="margin-top:0">${T('Players')}</h3>${tiles(v)}</div>`}
+        <div class="panel"><h3 style="margin-top:0">${T('Scores')}</h3>${scores(v)}</div>`;
     },
     player(root, v, ctx) {
       const me = ctx.seat;
@@ -103,21 +103,21 @@
       let main = '';
       if (v.phase === 'write') {
         if (v.myFake === null || editing) {
-          main = `<div class="status go">Write a fake answer that sounds true</div>${fakeForm(`fake-${v.round}`)}<p class="muted" style="font-size:.85em">Make it believable. You score when others pick it.</p>`;
+          main = `<div class="status go">${T('Write a fake answer that sounds true')}</div>${fakeForm(`fake-${v.round}`)}<p class="muted" style="font-size:.85em">${T('Make it believable. You score when others pick it.')}</p>`;
         } else {
           const left = v.wrote.filter((d) => !d).length;
-          main = `<div class="status">✅ Sent: <b>${U.esc(v.myFake)}</b></div><p class="muted">Waiting for ${left} more player${left === 1 ? '' : 's'}…</p><button class="secondary" id="editBtn" style="width:100%">Change my answer</button>`;
+          main = `<div class="status">${T('✅ Sent: {text}', { text: `<b>${U.bdi(v.myFake)}</b>` })}</div><p class="muted">${T.n(left, 'Waiting for 1 more player…', 'Waiting for {n} more players…')}</p><button class="secondary" id="editBtn" style="width:100%">${T('Change my answer')}</button>`;
         }
       } else if (v.phase === 'vote') {
-        main = `${v.myVote === null ? '<div class="status go">Which answer is true?</div>' : '<div class="status">✅ Voted. You can change it until everyone has voted.</div>'}
+        main = `${v.myVote === null ? `<div class="status go">${T('Which answer is true?')}</div>` : `<div class="status">${T('✅ Voted. You can change it until everyone has voted.')}</div>`}
           <div class="tt-pick">${v.options.map((o, k) => {
             const mine = v.myOptions.includes(k);
-            return `<button class="secondary ${v.myVote === k ? 'on' : ''}" ${mine ? 'disabled' : `data-vote="${k}"`}><span class="tt-letter">${L(k)}</span>${U.esc(o.text)}${mine ? '<span class="muted" style="margin-left:6px">(yours)</span>' : ''}</button>`;
+            return `<button class="secondary ${v.myVote === k ? 'on' : ''}" ${mine ? 'disabled' : `data-vote="${k}"`}><span class="tt-letter">${L(k)}</span><bdi>${U.esc(o.text)}</bdi>${mine ? `<span class="muted" style="margin-inline-start:6px">${T('(yours)')}</span>` : ''}</button>`;
           }).join('')}</div>`;
       } else {
-        main = `${myResult(v)}${v.over ? '' : '<button id="nextBtn" style="width:100%;margin-top:12px">Next question ▶</button>'}`;
+        main = `${myResult(v)}${v.over ? '' : `<button id="nextBtn" style="width:100%;margin-top:12px">${T('Next question')} <span class="flip-rtl">▶</span></button>`}`;
       }
-      if (v.over) main += `<div class="panel" style="margin-top:12px"><b>${v.winners.includes(me) ? '🏆 You win!' : 'Final scores'}</b>${scores(v)}</div>`;
+      if (v.over) main += `<div class="panel" style="margin-top:12px"><b>${v.winners.includes(me) ? T('🏆 You win!') : T('Final scores')}</b>${scores(v)}</div>`;
       root.innerHTML = `${question(v, false)}<div style="margin-top:12px">${main}</div>`;
       U.on(root, '[data-vote]', (b) => ctx.send({ type: 'vote', option: Number(b.dataset.vote) }));
       U.on(root, '#editBtn', () => { editing = true; draft = v.myFake || ''; typing = true; rerender(); });

@@ -32,7 +32,7 @@ module.exports = {
       drewThisTurn: false,
       over: false,
       winner: null,
-      log: [`${names[0]} starts.`],
+      log: [{ t: '{name} starts.', p: { name: names[0] } }],
     };
   },
 
@@ -51,15 +51,16 @@ module.exports = {
       st.discard.push(card);
       st.blocked = 0;
       st.suit = card.r === 8 ? a.suit : card.s;
-      log(st, `${st.names[p]} played ${cardName(card)}${card.r === 8 ? ` and called ${SUIT[a.suit]}` : ''}.`);
+      if (card.r === 8) log(st, '{name} played {card} and called {suit}.', { name: st.names[p], card: cardName(card), suit: SUIT[a.suit] });
+      else log(st, '{name} played {card}.', { name: st.names[p], card: cardName(card) });
       if (hand.length === 0) return finish(st, p);
-      if (hand.length === 1) log(st, `${st.names[p]} has one card left!`);
+      if (hand.length === 1) log(st, '{name} has one card left!', { name: st.names[p] });
       next(st);
     } else if (a.type === 'draw') {
       if (st.drewThisTurn) fail('You already drew');
       refill(st);
       if (!st.deck.length) {
-        log(st, `${st.names[p]} could not draw (no cards left) and passed.`);
+        log(st, '{name} could not draw (no cards left) and passed.', { name: st.names[p] });
         st.blocked = (st.blocked || 0) + 1;
         if (st.blocked >= st.names.length) return blockedEnd(st);
         return next(st);
@@ -68,15 +69,15 @@ module.exports = {
       hand.push(c);
       st.drewThisTurn = true;
       st.drawnId = c.id;
-      log(st, `${st.names[p]} drew a card.`);
+      log(st, '{name} drew a card.', { name: st.names[p] });
       const playable = c.r === 8 || c.s === st.suit || c.r === top.r;
       if (!playable) {
-        log(st, `${st.names[p]} passed.`);
+        log(st, '{name} passed.', { name: st.names[p] });
         next(st);
       }
     } else if (a.type === 'pass') {
       if (!st.drewThisTurn) fail('Draw first');
-      log(st, `${st.names[p]} passed.`);
+      log(st, '{name} passed.', { name: st.names[p] });
       next(st);
     } else fail('Unknown action');
   },
@@ -129,12 +130,12 @@ function blockedEnd(st) {
   st.over = true;
   st.winner = pts.indexOf(best);
   st.scores = pts;
-  log(st, `Nobody can play. ${st.names[st.winner]} wins with the lowest hand!`);
+  log(st, 'Nobody can play. {name} wins with the lowest hand!', { name: st.names[st.winner] });
 }
 
 function finish(st, p) {
   st.over = true;
   st.winner = p;
   st.scores = st.hands.map(penalty);
-  log(st, `${st.names[p]} wins!`);
+  log(st, '{name} wins!', { name: st.names[p] });
 }

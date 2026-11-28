@@ -4,49 +4,57 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&family=Rubik:wght@400;500;700;800&family=Varela+Round&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/css/style.css" />
 <meta name="theme-color" content="#1b1422" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>" />
-<title>Game Night</title>
+<title data-t-doc="Game Night">Game Night</title>
 </head>
 <body>
+<div class="lang-corner" id="langCorner"></div>
 <main class="landing">
-  <h1 class="logo">Game <span>Night</span></h1>
-  <p class="muted">Put the board on a big screen. Everyone plays from their phone.</p>
+  <h1 class="logo" data-t="Game &lt;span&gt;Night&lt;/span&gt;">Game <span>Night</span></h1>
+  <p class="muted" data-t="Put the board on a big screen. Everyone plays from their phone.">Put the board on a big screen. Everyone plays from their phone.</p>
   <div class="hero">
     <div class="panel col">
-      <h2>📺 Host on this screen</h2>
-      <p class="muted" style="margin:0">Open this on a TV, laptop or tablet everyone can see. You'll get a room code and QR code to join.</p>
-      <a href="/board.html"><button style="width:100%">Create a room</button></a>
+      <h2 data-t="📺 Host on this screen">📺 Host on this screen</h2>
+      <p class="muted" style="margin:0" data-t="Open this on a TV, laptop or tablet everyone can see. You'll get a room code and QR code to join.">Open this on a TV, laptop or tablet everyone can see. You'll get a room code and QR code to join.</p>
+      <a href="/board.html"><button style="width:100%" data-t="Create a room">Create a room</button></a>
     </div>
     <form class="panel col" id="joinForm">
-      <h2>📱 Join with your phone</h2>
-      <input id="code" placeholder="Room code (e.g. KQZT)" maxlength="4" autocapitalize="characters" autocomplete="off" />
-      <button type="submit">Join</button>
+      <h2 data-t="📱 Join with your phone">📱 Join with your phone</h2>
+      <input id="code" data-t-ph="Room code (e.g. KQZT)" dir="ltr" placeholder="Room code (e.g. KQZT)" maxlength="4" autocapitalize="characters" autocomplete="off" />
+      <button type="submit" data-t="Join">Join</button>
     </form>
   </div>
   <div class="steps">
-    <div><span><b>Open the board</b>Create a room on a TV, laptop or tablet.</span></div>
-    <div><span><b>Scan to join</b>Everyone scans the QR code or types the room code.</span></div>
-    <div><span><b>Play together</b>Your hand stays secret on your phone. The table is on the big screen.</span></div>
+    <div><span><b data-t="Open the board">Open the board</b><span data-t="Create a room on a TV, laptop or tablet.">Create a room on a TV, laptop or tablet.</span></span></div>
+    <div><span><b data-t="Scan to join">Scan to join</b><span data-t="Everyone scans the QR code or types the room code.">Everyone scans the QR code or types the room code.</span></span></div>
+    <div><span><b data-t="Play together">Play together</b><span data-t="Your hand stays secret on your phone. The table is on the big screen.">Your hand stays secret on your phone. The table is on the big screen.</span></span></div>
   </div>
-  <div class="section-title"><h2>The games</h2><span class="muted">Tap a game to read the rules</span></div>
+  <div class="section-title"><h2 data-t="The games">The games</h2><span class="muted" data-t="Tap a game to read the rules">Tap a game to read the rules</span></div>
   <div class="game-grid" id="games"></div>
-  <p class="footer">Made for game night with friends and family 🧡</p>
+  <p class="footer" data-t="Made for game night with friends and family 🧡">Made for game night with friends and family 🧡</p>
 </main>
+<script src="/i18n/he.js"></script>
+<script src="/js/i18n.js"></script>
 <script src="/js/common.js"></script>
 <script>
   document.getElementById('joinForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const c = document.getElementById('code').value.trim().toUpperCase();
-    if (c.length === 4) location.href = '/play.html?room=' + c; else U.toast('Enter the 4-letter code');
+    if (c.length === 4) location.href = '/play.html?room=' + c; else U.toast(T('Enter the 4-letter code'));
   });
-  loadGames().then((list) => {
+  function renderGames() {
+    document.getElementById('langCorner').innerHTML = U.langBtn('secondary small');
+    if (!window.GAME_LIST) return;
     const el = document.getElementById('games');
-    el.innerHTML = list.map((g) => `<div class="game-tile" data-id="${g.id}"><div class="ic">${g.icon}</div><h3>${U.esc(g.name)}</h3><p>${g.min === g.max ? g.min : g.min + '-' + g.max} players</p><p style="margin-top:6px">${U.esc(g.blurb)}</p></div>`).join('');
+    el.innerHTML = GAME_LIST.map((g) => `<div class="game-tile" data-id="${g.id}"><div class="ic">${g.icon}</div><h3>${U.esc(T(g.name))}</h3><p>${U.range(g)}</p><p style="margin-top:6px">${U.esc(T(g.blurb))}</p></div>`).join('');
     U.on(el, '.game-tile', (t) => U.rules(GAME_BY_ID[t.dataset.id]));
-  });
+  }
+  renderGames();
+  loadGames().then(renderGames);
+  document.addEventListener('langchange', renderGames);
 </script>
 </body>
 </html>

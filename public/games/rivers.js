@@ -52,25 +52,25 @@
   }
 
   function scores(v) {
-    return `<div class="row">${v.names.map((n, i) => `<span class="pill" style="border:2px solid ${COLORS[i]}">${U.esc(n)}: <b>${v.scores[i]}</b> pts · river ${v.lengths[i]}</span>`).join('')}<span class="pill">Bag ${v.bagCount}</span></div>`;
+    return `<div class="row">${v.names.map((n, i) => `<span class="pill" style="border:2px solid ${COLORS[i]}">${U.bdi(n)}: ${T('{n} pts · river {len}', { n: `<b>${v.scores[i]}</b>`, len: v.lengths[i] })}</span>`).join('')}<span class="pill">${T('Bag {n}', { n: v.bagCount })}</span></div>`;
   }
 
   GameUI.rivers = {
     board(root, v) {
-      const head = v.over ? `<div class="banner win">🏆 ${v.winner === null ? 'A tie!' : U.esc(v.names[v.winner]) + ' wins!'}</div>` : `<div class="banner"><span style="color:${COLORS[v.turn]}">●</span> ${U.esc(v.names[v.turn])}'s turn</div>`;
-      root.innerHTML = `${head}<div class="panel">${scores(v)}</div>${svg(v)}<p class="muted center">Dashed hexes show where each river flows next. Reach the sea (off the edge) to score 1 point per tile.</p>`;
+      const head = v.over ? `<div class="banner win">🏆 ${v.winner === null ? T('A tie!') : T('{name} wins!', { name: U.bdi(v.names[v.winner]) })}</div>` : `<div class="banner"><span style="color:${COLORS[v.turn]}">●</span> ${T("{name}'s turn", { name: U.bdi(v.names[v.turn]) })}</div>`;
+      root.innerHTML = `${head}<div class="panel">${scores(v)}</div>${svg(v)}<p class="muted center">${T('Dashed hexes show where each river flows next. Reach the sea (off the edge) to score 1 point per tile.')}</p>`;
     },
     player(root, v, ctx) {
       if (!v.myTurn || !v.hand.some((t) => t.id === selTile)) selTile = v.myTurn && selTile !== null && v.hand.some((t) => t.id === selTile) ? selTile : null;
       const sel = v.hand.find((t) => t.id === selTile);
-      const status = v.over ? (v.winner === ctx.seat ? '🏆 You win!' : 'Game over') : v.myTurn ? 'Your turn: choose a tile' : `Waiting for ${U.esc(v.names[v.turn])}`;
+      const status = v.over ? (v.winner === ctx.seat ? T('🏆 You win!') : T('Game over')) : v.myTurn ? T('Your turn: choose a tile') : T('Waiting for {name}', { name: U.bdi(v.names[v.turn]) });
       const myDir = v.heads[ctx.seat].dir;
       root.innerHTML = `<div class="status ${v.myTurn ? 'go' : ''}">${status}</div>
-        <div class="panel" style="padding:8px;margin-bottom:8px">${scores(v)}<div class="muted" style="font-size:.85em;margin-top:4px">You are <b style="color:${COLORS[ctx.seat]}">${ctx.seat === 0 ? 'red' : 'yellow'}</b>.</div></div>
+        <div class="panel" style="padding:8px;margin-bottom:8px">${scores(v)}<div class="muted" style="font-size:.85em;margin-top:4px">${T('You are {color}.', { color: `<b style="color:${COLORS[ctx.seat]}">${ctx.seat === 0 ? T('red') : T('yellow')}</b>` })}</div></div>
         ${svg(v, sel ? { p: ctx.seat, turn: sel.turn } : null)}
-        <h3 style="margin-top:10px">Your tiles</h3>
-        <div class="row" style="justify-content:center">${v.hand.map((t) => `<div class="tap tile center" data-id="${t.id}" style="padding:6px;border-radius:12px;background:var(--panel);border:2px solid ${t.id === selTile ? 'var(--accent)' : 'transparent'}">${tileIcon(t.turn, myDir)}<div style="font-size:.8em">${t.name}</div></div>`).join('')}</div>
-        ${v.myTurn ? `<div class="actions"><button id="place" ${sel ? '' : 'disabled'}>Place tile</button></div>` : ''}`;
+        <h3 style="margin-top:10px">${T('Your tiles')}</h3>
+        <div class="row" style="justify-content:center">${v.hand.map((t) => `<div class="tap tile center" data-id="${t.id}" style="padding:6px;border-radius:12px;background:var(--panel);border:2px solid ${t.id === selTile ? 'var(--accent)' : 'transparent'}">${tileIcon(t.turn, myDir)}<div style="font-size:.8em">${T(t.name)}</div></div>`).join('')}</div>
+        ${v.myTurn ? `<div class="actions"><button id="place" ${sel ? '' : 'disabled'}>${T('Place tile')}</button></div>` : ''}`;
       U.on(root, '.tile', (el) => { if (!v.myTurn) return; selTile = Number(el.dataset.id); GameUI.rivers.player(root, v, ctx); });
       U.on(root, '#place', async () => { const r = await ctx.send({ type: 'tile', tileId: selTile }); if (r.ok) selTile = null; });
     },

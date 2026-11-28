@@ -1,4 +1,4 @@
-const { fail, log, shuffle } = require('./util');
+const { fail, log, tr, shuffle } = require('./util');
 const crypto = require('crypto');
 
 const R = 4; // hex radius -> 61 cells
@@ -47,7 +47,7 @@ module.exports = {
       turn: 0,
       over: false,
       winner: null,
-      log: [`${names[0]} goes first.`],
+      log: [{ t: '{name} goes first.', p: { name: names[0] } }],
     };
     st.cells[key(0, 1)] = { owner: 0, spring: true, out: 0 };
     st.heads[0] = { q: 0, r: 1, dir: 0 };
@@ -73,7 +73,7 @@ module.exports = {
     st.heads[p] = { q, r, dir: out };
     st.lengths[p]++;
     if (st.bag.length) hand.push(st.bag.pop());
-    log(st, `${st.names[p]} played ${TILE_NAMES[tile.turn].toLowerCase()}.`);
+    log(st, '{name} played a tile: {tile}.', { name: st.names[p], tile: tr(TILE_NAMES[tile.turn]) });
     resolveFront(st, p);
     if (st.over) return;
     if (st.hands.every((hh) => hh.length === 0)) return finish(st);
@@ -117,10 +117,10 @@ function resolveFront(st, p) {
   if (!onBoard(q, r)) {
     const pts = st.lengths[p];
     st.scores[p] += pts;
-    log(st, `${st.names[p]}'s river reached the sea for ${pts} point${pts === 1 ? '' : 's'}!`);
+    log(st, pts === 1 ? "{name}'s river reached the sea for 1 point!" : "{name}'s river reached the sea for {n} points!", { name: st.names[p], n: pts });
     respawn(st, p);
   } else if (st.cells[key(q, r)]) {
-    log(st, `${st.names[p]}'s river ran into land and dried up.`);
+    log(st, "{name}'s river ran into land and dried up.", { name: st.names[p] });
     respawn(st, p);
   }
 }
@@ -152,5 +152,6 @@ function finish(st) {
   st.over = true;
   const [a, b] = st.scores;
   st.winner = a === b ? null : a > b ? 0 : 1;
-  log(st, st.winner === null ? `Tie game at ${a}!` : `${st.names[st.winner]} wins ${Math.max(a, b)} to ${Math.min(a, b)}!`);
+  if (st.winner === null) log(st, 'Tie game at {n}!', { n: a });
+  else log(st, '{name} wins {a} to {b}!', { name: st.names[st.winner], a: Math.max(a, b), b: Math.min(a, b) });
 }

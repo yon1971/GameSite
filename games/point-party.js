@@ -1,5 +1,5 @@
 const { fail, log, shuffle } = require('./util');
-const PROMPTS = require('./point-party-prompts');
+const PROMPTS = require('./point-party-prompts'); // [{ en, he }]
 
 module.exports = {
   id: 'point-party',
@@ -104,7 +104,7 @@ function newRound(st) {
   st.top = null;
   st.gained = null;
   st.phase = 'vote';
-  log(st, `Question ${st.round} of ${st.rounds}: who is most likely to ${st.prompt}?`);
+  log(st, 'Question {n} of {m}: who is most likely to {prompt}?', { n: st.round, m: st.rounds, prompt: st.prompt });
 }
 
 function resolve(st) {
@@ -122,16 +122,14 @@ function resolve(st) {
   st.gained = gained;
   st.phase = 'reveal';
   st.history.push({ prompt: st.prompt, top });
-  const who = joinNames(top.map((i) => st.names[i]));
-  log(st, top.length ? `${who} ${top.length > 1 ? 'are' : 'is'} most likely to ${st.prompt}!` : 'Everyone picked someone different. No title this time!');
+  const who = top.map((i) => st.names[i]);
+  if (!top.length) log(st, 'Everyone picked someone different. No title this time!');
+  else log(st, top.length > 1 ? '{who} are most likely to {prompt}!' : '{who} is most likely to {prompt}!', { who, prompt: st.prompt });
   if (st.round >= st.rounds) {
     st.over = true;
     const hi = Math.max(...st.scores);
     st.winners = st.names.map((_, i) => i).filter((i) => st.scores[i] === hi);
-    log(st, `Game over! ${joinNames(st.winners.map((i) => st.names[i]))} read the room best with ${hi} point${hi === 1 ? '' : 's'}.`);
+    log(st, hi === 1 ? 'Game over! {who} read the room best with 1 point.' : 'Game over! {who} read the room best with {n} points.', { who: st.winners.map((i) => st.names[i]), n: hi });
   }
 }
 
-function joinNames(a) {
-  return a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`;
-}
