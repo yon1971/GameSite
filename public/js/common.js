@@ -71,6 +71,7 @@ U.optionsHTML = function (game, values) {
   return `<div class="col opts">${game.options.map((o) => {
     const v = values[o.key];
     if (o.type === 'bool') return `<label class="row" style="justify-content:space-between"><span>${U.esc(o.label)}</span><button class="small ${v ? '' : 'secondary'}" data-opt="${o.key}" data-val="${v ? 0 : 1}">${v ? 'Yes' : 'No'}</button></label>`;
+    if (o.type === 'choice') return `<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span>${U.esc(o.label)}</span><span class="row" style="gap:6px;flex-wrap:nowrap"><button class="secondary small" data-opt="${o.key}" data-val="${v <= o.min ? o.max : v - 1}" aria-label="Previous">‹</button><b style="min-width:7em;text-align:center">${U.esc(o.choices[v])}</b><button class="secondary small" data-opt="${o.key}" data-val="${v >= o.max ? o.min : v + 1}" aria-label="Next">›</button></span></div>`;
     return `<div class="row" style="justify-content:space-between"><span>${U.esc(o.label)}</span><span class="row" style="gap:6px"><button class="secondary small" data-opt="${o.key}" data-val="${v - 1}" ${v <= o.min ? 'disabled' : ''}>−</button><b style="min-width:1.6em;text-align:center">${v}</b><button class="secondary small" data-opt="${o.key}" data-val="${v + 1}" ${v >= o.max ? 'disabled' : ''}>+</button></span></div>`;
   }).join('')}</div>`;
 };

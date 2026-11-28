@@ -308,3 +308,15 @@ table td { padding: 8px 6px; border-top: 1px solid var(--line-soft); }
 .tk-count b { display: block; font-size: 3.5rem; }
 .tk-count span { font-size: .9rem; color: var(--muted); }
 .tk-ended { font-family: 'Fredoka', sans-serif; font-size: 1.1em; color: var(--accent); margin-bottom: 6px; }
+
+/* ----- Blend In ----- */
+.bi-now { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 181, 71, .25); transform: translateY(-2px); }
+.bi-clues { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; min-height: 1.6em; }
+.bi-clue { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 2px 10px; font-size: .9em; }
+.bi-cat { font-family: 'Nunito', sans-serif; font-size: .85rem; opacity: .85; margin: 4px 0; }
+.bi-tap { font-family: 'Nunito', sans-serif; font-size: .8rem; margin-top: 6px; }
+.bi-word { font-family: 'Fredoka', sans-serif; font-size: 2.4em; color: var(--accent); text-transform: capitalize; line-height: 1.1; margin: 4px 0 8px; }
+.bi-news { font-size: 1.5rem; text-align: center; }
+.bi-plus { color: var(--accent2); font-weight: 800; margin-left: 8px; }
+.bi-form input { flex: 1; min-width: 0; font-size: 1.2rem; }
+.bi-cluelist { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
