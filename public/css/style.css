@@ -159,9 +159,17 @@ input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px 
 .version-badge { position: fixed; left: 8px; bottom: 6px; z-index: 5; font-size: 11px; color: var(--muted); opacity: .6; pointer-events: none; letter-spacing: .02em; }
 
 /* ----- board ----- */
-.board-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 20px; padding: 20px; min-height: 100vh; }
-@media (max-width: 900px) { .board-wrap { grid-template-columns: 1fr; } }
+.board-wrap { display: grid; grid-template-columns: 1fr 540px; gap: 20px; padding: 20px; min-height: 100vh; }
+.board-wrap.in-game { grid-template-columns: 1fr 400px; }
+@media (max-width: 900px) { .board-wrap, .board-wrap.in-game { grid-template-columns: 1fr; } }
 .board-side { display: flex; flex-direction: column; gap: 14px; }
+.join-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.join-row .players-panel { min-width: 0; }
+.join-row .joinbox { width: 280px; }
+.join-row .joinbox .code { font-size: 2.8rem; }
+.join-row .joinbox.compact { width: 190px; padding-left: 12px; padding-right: 12px; }
+.join-row .joinbox.compact .code { font-size: 1.7rem; }
+.join-row .plist .grow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board-side h3 { display: flex; align-items: center; gap: 8px; }
 .joinbox { text-align: center; background: linear-gradient(160deg, rgba(255, 127, 110, .18), rgba(255, 181, 71, .06) 70%), var(--panel); }
 .joinbox .code { font-family: 'Fredoka', monospace; font-size: 3.2rem; letter-spacing: .22em; padding-left: .22em; line-height: 1; margin: 10px 0 12px; background: linear-gradient(90deg, var(--accent), var(--coral)); -webkit-background-clip: text; background-clip: text; color: transparent; }
