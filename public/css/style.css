@@ -303,3 +303,7 @@ table td { padding: 8px 6px; border-top: 1px solid var(--line-soft); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+.tk-count { text-align: center; font-family: 'Fredoka', sans-serif; color: var(--accent); line-height: 1; }
+.tk-count b { display: block; font-size: 3.5rem; }
+.tk-count span { font-size: .9rem; color: var(--muted); }
+.tk-ended { font-family: 'Fredoka', sans-serif; font-size: 1.1em; color: var(--accent); margin-bottom: 6px; }

@@ -1,6 +1,5 @@
 const { fail, log, shuffle } = require('./util');
 
-const VOTE_SECONDS = 90;
 const ROLE_NAMES = { villager: 'Villager', killer: 'Killer', spy: 'Spy' };
 
 module.exports = {
@@ -13,17 +12,16 @@ module.exports = {
   options: [
     { key: 'killers', label: 'Number of killers', type: 'number', min: 1, max: 5, default: 1 },
     { key: 'spy', label: 'Include a spy', type: 'bool', default: true },
-    { key: 'minutes', label: 'Minutes to talk each round', type: 'number', min: 1, max: 15, default: 3 },
   ],
   rules: [
     'Everyone gets a secret role on their phone: Villager, Killer, or (if turned on) Spy. Don\'t show your phone to anyone!',
     'Killers can see who the other killers are. Villagers and the spy only know their own role.',
-    'Each round starts with talking time (set by the host). Discuss, accuse and defend. When everyone taps "Ready to vote" or the timer runs out, voting starts.',
-    'Voting: every living player picks someone to eliminate. The player with the most votes is out and their role is shown. If there is a tie for most votes, nobody is voted out.',
-    'At the same time the killers secretly pick a villager to kill. With more than one killer, all living killers must pick the same person, or nobody is killed. Killers can see each other\'s picks on their phones to agree.',
-    'The spy secretly picks one player to investigate, and their phone says whether that player is a killer. The spy counts as a villager and also votes.',
-    `Voting closes when everyone has chosen, or after ${VOTE_SECONDS} seconds. Anyone who hasn't chosen skips.`,
-    'The next round the big screen shows who was voted out and who was killed.',
+    'There is no timer. Each round, talk it over, accuse and defend, and vote on your phone whenever you are ready.',
+    'Voting: every living player picks someone to eliminate. Killers vote too, so they blend in. The player with the most votes is out and their role is shown. If there is a tie for most votes, nobody is voted out.',
+    'After a killer votes, they also secretly pick a villager to kill. With more than one killer, the person picked by the most killers is killed. If the killers split evenly, one of their top picks is chosen at random. Killers can see each other\'s picks on their phones to agree.',
+    'The spy secretly picks one player to investigate each round, and their phone says whether that player is a killer. The spy counts as a villager and also votes.',
+    'You can change your vote until the round ends. The round ends as soon as every living player has voted, every killer has picked a victim, and the spy has investigated.',
+    'When the round ends, the big screen shows who the villagers voted out and who the killers killed. Then the next round begins.',
     'Villagers win when every killer is out. Killers win when there are as many killers alive as everyone else.',
   ],
 
@@ -37,18 +35,14 @@ module.exports = {
     seats.slice(0, k).forEach((i) => (roles[i] = 'killer'));
     const useSpy = o.spy !== false && n - k >= 2;
     if (useSpy) roles[seats[k]] = 'spy';
-    const minutes = o.minutes || 3;
     const st = {
       names,
       roles,
       alive: names.map(() => true),
       killerCount: k,
       hasSpy: useSpy,
-      minutes,
       round: 1,
-      phase: 'talk',
-      endsAt: Date.now() + minutes * 60000,
-      ready: {},
+      phase: 'vote',
       votes: {},
       kills: {},
       spyPick: null,
@@ -69,24 +63,17 @@ module.exports = {
     const target = a.target;
     const valid = (t) => Number.isInteger(t) && t >= 0 && t < st.names.length && st.alive[t];
     switch (a.type) {
-      case 'ready':
-        if (st.phase !== 'talk') fail('Voting has already started');
-        st.ready[p] = !st.ready[p];
-        if (aliveList(st).every((i) => st.ready[i])) startVote(st);
-        return;
       case 'vote':
-        if (st.phase !== 'vote') fail('Voting has not started');
         if (!valid(target) || target === p) fail('Pick another living player');
         st.votes[p] = target;
         break;
       case 'kill':
-        if (st.phase !== 'vote') fail('Wait for the voting time');
         if (st.roles[p] !== 'killer') fail('Only killers can do that');
+        if (st.votes[p] === undefined) fail('Vote first, then pick who to kill');
         if (!valid(target) || st.roles[target] === 'killer') fail('Pick a living non-killer');
         st.kills[p] = target;
         break;
       case 'spy':
-        if (st.phase !== 'vote') fail('Wait for the voting time');
         if (st.roles[p] !== 'spy') fail('Only the spy can do that');
         if (st.spyPick !== null) fail('You already investigated this round');
         if (!valid(target) || target === p) fail('Pick another living player');
@@ -99,13 +86,6 @@ module.exports = {
     if (allIn(st)) resolve(st);
   },
 
-  tick(st, now) {
-    if (st.over || now < st.endsAt) return false;
-    if (st.phase === 'talk') startVote(st);
-    else resolve(st);
-    return true;
-  },
-
   boardView(st) {
     const alive = aliveList(st);
     return {
@@ -113,10 +93,10 @@ module.exports = {
       alive: st.alive,
       round: st.round,
       phase: st.phase,
-      remainingMs: Math.max(0, st.endsAt - Date.now()),
       killerCount: st.killerCount,
       hasSpy: st.hasSpy,
-      ready: st.names.map((_, i) => !!st.ready[i]),
+      // Only the public vote is shown per player; secret picks are never shown per player,
+      // so the screen can't give away who the killers or the spy are.
       voted: st.names.map((_, i) => st.votes[i] !== undefined),
       aliveCount: alive.length,
       revealed: st.names.map((_, i) => (!st.alive[i] || st.over ? st.roles[i] : null)),
@@ -135,7 +115,6 @@ module.exports = {
     v.roleName = ROLE_NAMES[role];
     v.meAlive = st.alive[p];
     v.myVote = st.votes[p] ?? null;
-    v.myReady = !!st.ready[p];
     if (role === 'killer') {
       v.partners = st.names.map((_, i) => i).filter((i) => i !== p && st.roles[i] === 'killer');
       v.myKill = st.kills[p] ?? null;
@@ -153,22 +132,16 @@ function aliveList(st) {
   return st.names.map((_, i) => i).filter((i) => st.alive[i]);
 }
 
-function startVote(st) {
-  st.phase = 'vote';
-  st.endsAt = Date.now() + VOTE_SECONDS * 1000;
-  st.votes = {};
-  st.kills = {};
-  st.spyPick = null;
-  log(st, `Round ${st.round}: time to vote!`);
+// Has this living player made every choice their role needs this round?
+function done(st, i) {
+  if (!st.alive[i] || st.votes[i] === undefined) return false;
+  if (st.roles[i] === 'killer' && st.kills[i] === undefined) return false;
+  if (st.roles[i] === 'spy' && st.spyPick === null) return false;
+  return true;
 }
 
 function allIn(st) {
-  const alive = aliveList(st);
-  if (!alive.every((i) => st.votes[i] !== undefined)) return false;
-  if (!alive.filter((i) => st.roles[i] === 'killer').every((i) => st.kills[i] !== undefined)) return false;
-  const spy = alive.find((i) => st.roles[i] === 'spy');
-  if (spy !== undefined && st.spyPick === null) return false;
-  return true;
+  return aliveList(st).every((i) => done(st, i));
 }
 
 function resolve(st) {
@@ -179,16 +152,20 @@ function resolve(st) {
   const counts = Object.entries(tally).map(([t, c]) => ({ target: Number(t), count: c })).sort((a, b) => b.count - a.count);
   let votedOut = null;
   if (counts.length && (counts.length === 1 || counts[0].count > counts[1].count)) votedOut = counts[0].target;
-  // killers' kill: every living killer must choose the same target
+  // killers' kill: the target picked by the most living killers; an even split is broken at random
   const killers = alive.filter((i) => st.roles[i] === 'killer');
-  const picks = killers.map((i) => st.kills[i]);
-  let killed = null;
+  const kTally = {};
+  for (const i of killers) if (st.kills[i] !== undefined) kTally[st.kills[i]] = (kTally[st.kills[i]] || 0) + 1;
+  const top = Math.max(0, ...Object.values(kTally));
+  const tied = Object.keys(kTally).filter((t) => kTally[t] === top).map(Number);
+  let killed = tied.length ? shuffle(tied)[0] : null;
   let killFail = null;
-  if (picks.length && picks.every((t) => t !== undefined && t === picks[0])) killed = picks[0];
-  else if (picks.some((t) => t !== undefined)) killFail = killers.length > 1 ? 'The killers did not agree, so nobody was killed.' : null;
-  if (killed === votedOut) killed = null; // already out
+  if (killed !== null && killed === votedOut) {
+    killFail = `${st.names[killed]} was voted out before the killers could strike, so nobody else was killed.`;
+    killed = null;
+  }
 
-  const res = { round: st.round, votedOut, votedOutRole: null, killed, killedRole: null, tie: !votedOut && counts.length > 0, noVotes: !counts.length, counts, killFail };
+  const res = { round: st.round, votedOut, votedOutRole: null, killed, killedRole: null, tie: votedOut === null && counts.length > 0, noVotes: !counts.length, counts, killFail };
   if (votedOut !== null) {
     st.alive[votedOut] = false;
     res.votedOutRole = st.roles[votedOut];
@@ -205,10 +182,8 @@ function resolve(st) {
   const k = left.filter((i) => st.roles[i] === 'killer').length;
   if (k === 0) return end(st, 'villagers', 'All the killers are gone. Villagers win!');
   if (k >= left.length - k) return end(st, 'killers', 'The killers have taken over. Killers win!');
+  log(st, `Round ${st.round} is over. Round ${st.round + 1} begins.`);
   st.round++;
-  st.phase = 'talk';
-  st.endsAt = Date.now() + st.minutes * 60000;
-  st.ready = {};
   st.votes = {};
   st.kills = {};
   st.spyPick = null;
