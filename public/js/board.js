@@ -29,6 +29,8 @@ function render({ room: rm, view }) {
   const game = GAME_BY_ID[rm.gameId];
   const inGame = !!view;
 
+  $('boardWrap').classList.toggle('in-game', inGame);
+
   // join box
   const jb = $('joinbox');
   jb.className = 'panel joinbox' + (inGame ? ' compact' : '');

@@ -1,6 +1,6 @@
 {
   "name": "game-night",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": true,
   "description": "Party board & card games: big screen board, phones as hands.",
   "main": "server.js",

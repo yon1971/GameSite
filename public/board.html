@@ -11,11 +11,13 @@
 <title>Game Night Board</title>
 </head>
 <body>
-<div class="board-wrap">
+<div class="board-wrap" id="boardWrap">
   <section class="stage" id="stage"></section>
   <aside class="board-side">
-    <div class="panel joinbox" id="joinbox"></div>
-    <div class="panel"><h3>Players</h3><div id="players"></div></div>
+    <div class="join-row">
+      <div class="panel players-panel"><h3>Players</h3><div id="players"></div></div>
+      <div class="panel joinbox" id="joinbox"></div>
+    </div>
     <div class="panel" id="controls"></div>
     <div class="panel hidden" id="logbox"><h3>What happened</h3><div id="log"></div></div>
   </aside>
