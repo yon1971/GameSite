@@ -8,7 +8,7 @@
       for (let c = 0; c < v.cols; c++) {
         const who = v.grid[c][r];
         const isLast = v.lastDrop && v.lastDrop[0] === c && v.lastDrop[1] === r;
-        html += `<div class="${tappable ? 'tap dropcol' : ''}" data-c="${c}" style="aspect-ratio:1;border-radius:50%;background:${who === undefined ? '#0d1b2a' : COL[who]};${c === v.shiftCol && !v.over ? 'box-shadow:inset 0 0 0 3px #5ad1c4;' : ''}${win.has(c + ',' + r) ? 'outline:4px solid #fff;' : ''}${isLast ? 'box-shadow:0 0 0 3px #fff8;' : ''}"></div>`;
+        html += `<div class="${tappable ? 'tap dropcol' : ''}" data-c="${c}" style="aspect-ratio:1;border-radius:50%;background:${who === undefined ? '#1b1422' : COL[who]};${c === v.shiftCol && !v.over ? 'box-shadow:inset 0 0 0 3px #5ad1c4;' : ''}${win.has(c + ',' + r) ? 'outline:4px solid #fff;' : ''}${isLast ? 'box-shadow:0 0 0 3px #fff8;' : ''}"></div>`;
       }
     html += `</div><div style="display:grid;grid-template-columns:repeat(${v.cols},1fr);gap:6px;text-align:center;margin-top:4px" class="muted">${Array.from({ length: v.cols }, (_, c) => `<div>${c + 1}</div>`).join('')}</div>`;
     return html;

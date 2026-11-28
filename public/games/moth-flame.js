@@ -2,14 +2,14 @@
   function grid(v, clickable) {
     const fr = new Set(v.frontier.map(([r, c]) => r + ',' + c));
     const last = new Set((v.last || []).map(([r, c]) => r + ',' + c));
-    let h = `<div class="grid-board" style="grid-template-columns:repeat(${v.n},1fr);max-width:600px;background:#0a1420;padding:8px;border-radius:14px">`;
+    let h = `<div class="grid-board" style="grid-template-columns:repeat(${v.n},1fr);max-width:600px;background:#140e19;padding:8px;border-radius:14px">`;
     for (let r = 0; r < v.n; r++)
       for (let c = 0; c < v.n; c++) {
         const x = v.grid[r][c];
         const edge = r === 0 || c === 0 || r === v.n - 1 || c === v.n - 1;
         const isFr = fr.has(r + ',' + c);
         const canTap = clickable && !x && (clickable === 'moth' || isFr);
-        const bg = x === 'F' ? 'radial-gradient(circle,#ffd43b,#ff6b00)' : x === 'M' ? '#3b3f5c' : isFr ? '#3a2a1a' : edge ? '#1c2f45' : '#13263a';
+        const bg = x === 'F' ? 'radial-gradient(circle,#ffd43b,#ff6b00)' : x === 'M' ? '#5a4570' : isFr ? '#4a2c1c' : edge ? '#33253f' : '#241a2e';
         h += `<div class="cell ${canTap ? 'tap' : ''}" data-r="${r}" data-c="${c}" style="background:${bg};${last.has(r + ',' + c) ? 'outline:2px solid #fff;' : ''}">${x === 'F' ? '🔥' : x === 'M' ? '🦋' : ''}</div>`;
       }
     return h + '</div>';
