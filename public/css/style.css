@@ -321,6 +321,20 @@ table td { padding: 8px 6px; border-top: 1px solid var(--line-soft); }
 .bi-form input { flex: 1; min-width: 0; font-size: 1.2rem; }
 .bi-cluelist { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 
+/* Point Party */
+.pp-q { font-family: 'Fredoka', sans-serif; font-size: 1.5rem; line-height: 1.2; margin: 6px 0 10px; }
+.pp-q.big { font-size: 2.4rem; }
+.pp-lead { display: block; font-size: .55em; color: var(--accent); letter-spacing: .02em; }
+.pp-winner { font-family: 'Fredoka', sans-serif; font-size: 2.2em; color: var(--accent); line-height: 1.1; margin: 4px 0; }
+.pp-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; text-align: left; font-size: 1rem; }
+.pp-bar { display: grid; grid-template-columns: minmax(80px, 30%) 1fr auto; align-items: center; gap: 10px; }
+.pp-name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-track { height: 14px; background: var(--bg2); border-radius: 999px; overflow: hidden; }
+.pp-fill { display: block; height: 100%; background: var(--pc, var(--accent)); border-radius: 999px; transition: width .6s var(--ease); }
+.pp-bar.top .pp-fill { background: var(--accent); }
+.pp-who { grid-column: 1 / -1; font-size: .8em; color: var(--muted); margin-top: -4px; }
+.pp-hist { margin: 0; padding-left: 1.2em; }
+
 /* Tall Tales */
 .tt-q { font-family: 'Fredoka', sans-serif; font-size: 1.3rem; line-height: 1.35; text-align: center; }
 .tt-q.big { font-size: 2.2rem; padding: 28px; }

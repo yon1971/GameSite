@@ -9,6 +9,7 @@ const list = [
   require('./moth-flame'),
   require('./the-killer'),
   require('./blend-in'),
+  require('./point-party'),
   require('./tall-tales'),
 ];
 module.exports = Object.fromEntries(list.map((g) => [g.id, g]));
