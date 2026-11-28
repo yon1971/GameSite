@@ -1,4 +1,4 @@
-const { fail, log, shuffle } = require('./util');
+const { fail, log, tr, shuffle } = require('./util');
 
 const GOODS = {
   gem: { name: 'Gem', value: 7, count: 4, icon: '💎' },
@@ -48,7 +48,7 @@ module.exports = {
       result: null,
       over: false,
       winner: null,
-      log: [`Round 1. ${names[0]} is selling first.`],
+      log: [{ t: 'Round 1. {name} is selling first.', p: { name: names[0] } }],
     };
   },
 
@@ -65,7 +65,7 @@ module.exports = {
       st.offer = { cardId: card.id, claim: a.claim, price };
       st.responses = {};
       st.phase = 'respond';
-      log(st, `${st.names[p]} offers ${GOODS[a.claim].name} for ${price} coins.`);
+      log(st, '{name} offers {good} for {n} coins.', { name: st.names[p], good: tr(GOODS[a.claim].name), n: price });
     } else if (a.type === 'respond') {
       if (st.phase !== 'respond' || p === st.seller) fail('You cannot respond now');
       if (!['buy', 'call', 'pass'].includes(a.choice)) fail('Choose buy, call or pass');
@@ -82,10 +82,10 @@ module.exports = {
       if (st.seller === 0) {
         st.round++;
         if (st.round > ROUNDS) return finish(st);
-        log(st, `Round ${st.round} begins.`);
+        log(st, 'Round {n} begins.', { n: st.round });
       }
       if (!st.hands[st.seller].length) {
-        log(st, `${st.names[st.seller]} has nothing to sell.`);
+        log(st, '{name} has nothing to sell.', { name: st.names[st.seller] });
         st.phase = 'result';
         st.result = { skipped: true };
       }
@@ -149,10 +149,10 @@ function resolve(st) {
     if (res.lied) {
       callers.forEach((c) => pay(s, c, price));
       sale = false;
-      log(st, `Bluff called! It was ${GOODS[card.k].name}. ${st.names[s]} pays the callers.`);
+      log(st, 'Bluff called! It was {good}. {name} pays the callers.', { good: tr(GOODS[card.k].name), name: st.names[s] });
     } else {
       callers.forEach((c) => pay(c, s, Math.ceil(price / 2)));
-      log(st, `Bluff called, but it really was ${GOODS[card.k].name}! Callers pay ${st.names[s]}.`);
+      log(st, 'Bluff called, but it really was {good}! Callers pay {name}.', { good: tr(GOODS[card.k].name), name: st.names[s] });
     }
   }
   if (sale && buyers.length) {
@@ -161,7 +161,7 @@ function resolve(st) {
       pay(b, s, price);
       st.stash[b].push(card);
       res.buyer = b;
-      log(st, `${st.names[b]} bought it for ${price}.`);
+      log(st, '{name} bought it for {n}.', { name: st.names[b], n: price });
     } else sale = false;
   }
   if (res.buyer === null && sale && !buyers.length) log(st, 'Nobody bought it.');
@@ -180,5 +180,6 @@ function finish(st) {
   const best = Math.max(...st.final.map((f) => f.total));
   const w = st.final.map((f, i) => (f.total === best ? i : -1)).filter((i) => i >= 0);
   st.winner = w.length === 1 ? w[0] : null;
-  log(st, w.length === 1 ? `${st.names[w[0]]} wins with ${best}!` : `Tie at ${best}!`);
+  if (w.length === 1) log(st, '{name} wins with {n}!', { name: st.names[w[0]], n: best });
+  else log(st, 'Tie at {n}!', { n: best });
 }

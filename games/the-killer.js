@@ -1,4 +1,4 @@
-const { fail, log, shuffle } = require('./util');
+const { fail, log, tr, shuffle } = require('./util');
 
 const ROLE_NAMES = { villager: 'Villager', killer: 'Killer', spy: 'Spy' };
 
@@ -52,8 +52,8 @@ module.exports = {
       winner: null,
       log: [],
     };
-    log(st, `Roles are dealt: ${k} killer${k > 1 ? 's' : ''}${useSpy ? ' and a spy' : ''} are hiding among you.`);
-    if (k < (o.killers || 1)) log(st, `Only ${k} killer${k > 1 ? 's' : ''} for ${n} players.`);
+    log(st, k > 1 ? (useSpy ? 'Roles are dealt: {n} killers and a spy are hiding among you.' : 'Roles are dealt: {n} killers are hiding among you.') : useSpy ? 'Roles are dealt: 1 killer and a spy are hiding among you.' : 'Roles are dealt: 1 killer is hiding among you.', { n: k });
+    if (k < (o.killers || 1)) log(st, k > 1 ? 'Only {k} killers for {n} players.' : 'Only 1 killer for {n} players.', { k, n });
     return st;
   },
 
@@ -161,7 +161,7 @@ function resolve(st) {
   let killed = tied.length ? shuffle(tied)[0] : null;
   let killFail = null;
   if (killed !== null && killed === votedOut) {
-    killFail = `${st.names[killed]} was voted out before the killers could strike, so nobody else was killed.`;
+    killFail = tr('{name} was voted out before the killers could strike, so nobody else was killed.', { name: st.names[killed] });
     killed = null;
   }
 
@@ -169,12 +169,12 @@ function resolve(st) {
   if (votedOut !== null) {
     st.alive[votedOut] = false;
     res.votedOutRole = st.roles[votedOut];
-    log(st, `${st.names[votedOut]} was voted out. They were a ${ROLE_NAMES[st.roles[votedOut]]}.`);
+    log(st, '{name} was voted out. They were a {role}.', { name: st.names[votedOut], role: tr(ROLE_NAMES[st.roles[votedOut]]) });
   } else log(st, res.tie ? 'The vote was a tie. Nobody was voted out.' : 'Nobody voted.');
   if (killed !== null) {
     st.alive[killed] = false;
     res.killedRole = st.roles[killed];
-    log(st, `${st.names[killed]} was killed by the killers.`);
+    log(st, '{name} was killed by the killers.', { name: st.names[killed] });
   } else log(st, killFail || 'Nobody was killed.');
   st.lastResult = res;
 
@@ -182,7 +182,7 @@ function resolve(st) {
   const k = left.filter((i) => st.roles[i] === 'killer').length;
   if (k === 0) return end(st, 'villagers', 'All the killers are gone. Villagers win!');
   if (k >= left.length - k) return end(st, 'killers', 'The killers have taken over. Killers win!');
-  log(st, `Round ${st.round} is over. Round ${st.round + 1} begins.`);
+  log(st, 'Round {a} is over. Round {b} begins.', { a: st.round, b: st.round + 1 });
   st.round++;
   st.votes = {};
   st.kills = {};

@@ -1,12 +1,12 @@
 {
   "name": "game-night",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "private": true,
   "description": "Party board & card games: big screen board, phones as hands.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/fuzz.js"
+    "test": "node test/i18n.js && node test/fuzz.js"
   },
   "engines": {
     "node": ">=18"

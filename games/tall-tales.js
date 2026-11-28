@@ -1,16 +1,24 @@
-const { fail, log, shuffle } = require('./util');
-const QUESTIONS = require('./trivia-questions');
+const { fail, log, tr, shuffle } = require('./util');
+// Same categories in both languages; the room's language picks the questions.
+const QUESTIONS = { en: require('./trivia-questions'), he: require('./trivia-questions-he') };
 
-const CATEGORIES = Object.keys(QUESTIONS);
+const CATEGORIES = Object.keys(QUESTIONS.en);
 const CATEGORY_CHOICES = ['Mixed (random)', ...CATEGORIES];
 const TRUTH_POINTS = 2;
 const FOOL_POINTS = 1;
 
+const FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+
 // Lower-case, drop accents, punctuation, spaces and a leading "a"/"an"/"the",
 // so "The Moon!", "moon" and "MOON" are the same answer.
+// Hebrew: niqqud, final letters and a leading "ה" (the) on each word are ignored.
 function norm(s) {
-  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-    .replace(/^\s*(a|an|the)\s+/, '').replace(/[^a-z0-9]/g, '');
+  const t = String(s || '').normalize('NFD').replace(/[\u0300-\u036f\u0591-\u05c7]/g, '').toLowerCase();
+  if (/[א-ת]/.test(t)) {
+    return t.split(/[\s\-־]+/).map((w) => w.replace(/[^א-ת0-9]/g, '')).map((w) => (w.length > 2 && w.startsWith('ה') ? w.slice(1) : w))
+      .join('').replace(/[ךםןףץ]/g, (c) => FINALS[c]);
+  }
+  return t.replace(/^\s*(a|an|the)\s+/, '').replace(/[^a-z0-9]/g, '');
 }
 
 function isTruth(q, text) {
@@ -42,6 +50,7 @@ module.exports = {
     const o = opts.options || {};
     const st = {
       names,
+      lang: opts.lang === 'he' ? 'he' : 'en',
       rounds: Math.max(1, Math.min(15, o.rounds || 6)),
       catChoice: Math.max(0, Math.min(CATEGORIES.length, o.category || 0)),
       scores: names.map(() => 0),
@@ -128,8 +137,9 @@ module.exports = {
 
 function newRound(st) {
   const cat = st.catChoice ? CATEGORIES[st.catChoice - 1] : CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-  let pool = QUESTIONS[cat].filter((q) => !st.used.includes(q.q));
-  if (!pool.length) pool = QUESTIONS[cat];
+  const list = QUESTIONS[st.lang || 'en'][cat];
+  let pool = list.filter((q) => !st.used.includes(q.q));
+  if (!pool.length) pool = list;
   const q = shuffle(pool.slice())[0];
   st.used.push(q.q);
   st.round++;
@@ -140,7 +150,7 @@ function newRound(st) {
   st.options = [];
   st.gained = null;
   st.phase = 'write';
-  log(st, `Question ${st.round} of ${st.rounds} (${cat}). Write a fake answer on your phone!`);
+  log(st, 'Question {n} of {m} ({cat}). Write a fake answer on your phone!', { n: st.round, m: st.rounds, cat: tr(cat) });
 }
 
 function startVote(st) {
@@ -167,12 +177,12 @@ function finishRound(st) {
   st.gained = gained;
   st.phase = 'reveal';
   const found = Object.values(st.votes).filter((k) => st.options[k].truth).length;
-  log(st, `The truth was "${st.q.a}". ${found === 0 ? 'Nobody' : found === st.names.length ? 'Everybody' : found} found it.`);
+  log(st, found === 0 ? 'The truth was "{a}". Nobody found it.' : found === st.names.length ? 'The truth was "{a}". Everybody found it.' : found === 1 ? 'The truth was "{a}". 1 player found it.' : 'The truth was "{a}". {n} players found it.', { a: st.q.a, n: found });
   if (st.round >= st.rounds) {
     st.over = true;
     const best = Math.max(...st.scores);
     st.winners = st.names.map((_, i) => i).filter((i) => st.scores[i] === best);
-    log(st, `Game over! ${st.winners.map((i) => st.names[i]).join(' and ')} win${st.winners.length > 1 ? '' : 's'} with ${best} points.`);
+    log(st, st.winners.length > 1 ? 'Game over! {who} win with {n} points.' : 'Game over! {who} wins with {n} points.', { who: st.winners.map((i) => st.names[i]), n: best });
   }
 }
 

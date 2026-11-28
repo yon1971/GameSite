@@ -15,12 +15,28 @@ function standardDeck() {
   return shuffle(deck);
 }
 
-function fail(msg) {
-  throw new Error(msg);
+// Messages are English templates with {placeholders}; the browser translates them.
+// tr('...', params) builds a translatable entry, also usable as a param of another entry.
+function tr(t, p) {
+  return p ? { t, p } : { t };
+}
+function fill(t, p) {
+  return p ? t.replace(/\{(\w+)\}/g, (m, k) => (k in p ? plain(p[k]) : m)) : t;
+}
+function plain(x) {
+  if (Array.isArray(x)) return x.length < 2 ? x.map(plain).join('') : `${x.slice(0, -1).map(plain).join(', ')} and ${plain(x[x.length - 1])}`;
+  if (x && typeof x === 'object') return 't' in x ? fill(x.t, x.p) : x.en;
+  return String(x);
 }
 
-function log(state, msg) {
-  state.log.unshift(msg);
+function fail(msg, params) {
+  const e = new Error(fill(msg, params));
+  e.i18n = tr(msg, params);
+  throw e;
+}
+
+function log(state, msg, params) {
+  state.log.unshift(params ? tr(msg, params) : msg);
   if (state.log.length > 8) state.log.length = 8;
 }
 
@@ -40,4 +56,4 @@ const RANK = (r) => ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' }[r] || String(r));
 const SUIT = { S: '♠', H: '♥', D: '♦', C: '♣' };
 const cardName = (c) => RANK(c.r) + SUIT[c.s];
 
-module.exports = { shuffle, standardDeck, fail, log, takeCards, cardName, RANK, SUIT };
+module.exports = { shuffle, standardDeck, fail, log, tr, plain, takeCards, cardName, RANK, SUIT };

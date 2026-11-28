@@ -50,6 +50,7 @@ function roomInfo(room) {
     gameId: room.gameId,
     options: room.gameId ? currentOptions(room) : {},
     phase: room.phase,
+    lang: room.lang || 'en',
     joinUrl: room.joinUrl,
     players: room.players.map((p, i) => ({ name: p.name, connected: p.connected, seat: i })),
   };
@@ -96,7 +97,7 @@ io.on('connection', (socket) => {
     const origin = (data && data.origin) || '';
     const joinUrl = `${origin}/play.html?room=${code}`;
     const qr = await QRCode.toDataURL(joinUrl, { margin: 1, width: 320 });
-    const room = { code, joinUrl, qr, boards: new Set([socket.id]), players: [], gameId: null, phase: 'lobby', state: null, touched: Date.now() };
+    const room = { code, lang: data && data.lang === 'he' ? 'he' : 'en', joinUrl, qr, boards: new Set([socket.id]), players: [], gameId: null, phase: 'lobby', state: null, touched: Date.now() };
     rooms.set(code, room);
     socket.join(code);
     joined = { code, role: 'board' };
@@ -163,16 +164,29 @@ io.on('connection', (socket) => {
     const game = GAMES[room.gameId];
     if (!game) return cb && cb({ ok: false, error: 'Pick a game first' });
     const n = room.players.length;
-    if (n < game.min || n > game.max) return cb && cb({ ok: false, error: `${game.name} needs ${game.min}-${game.max} players (you have ${n})` });
+    if (n < game.min || n > game.max) {
+      const err = { t: '{game} needs {min}-{max} players (you have {n})', p: { game: { t: game.name }, min: game.min, max: game.max, n } };
+      return cb && cb({ ok: false, error: `${game.name} needs ${game.min}-${game.max} players (you have ${n})`, err });
+    }
     try {
       room.plays = room.plays || {};
       const round = room.plays[room.gameId] || 0;
-      room.state = game.setup(room.players.map((p) => p.name), { round, options: currentOptions(room) });
+      room.state = game.setup(room.players.map((p) => p.name), { round, options: currentOptions(room), lang: room.lang || 'en' });
       room.plays[room.gameId] = round + 1;
       room.phase = 'playing';
     } catch (e) {
-      return cb && cb({ ok: false, error: e.message });
+      return cb && cb({ ok: false, error: e.message, err: e.i18n });
     }
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
+
+  // The big screen's language sets the room language: it picks the words and questions
+  // for word games, and phones that haven't chosen a language follow it.
+  socket.on('room:lang', (data, cb) => {
+    const room = joined && rooms.get(joined.code);
+    if (!room || !room.boards.has(socket.id)) return cb && cb({ ok: false });
+    room.lang = data && data.lang === 'he' ? 'he' : 'en';
     cb && cb({ ok: true });
     broadcast(room);
   });
@@ -226,7 +240,7 @@ io.on('connection', (socket) => {
     try {
       game.act(room.state, seat, action || {});
     } catch (e) {
-      return cb && cb({ ok: false, error: e.message });
+      return cb && cb({ ok: false, error: e.message, err: e.i18n });
     }
     if (room.state.over) room.phase = 'over';
     cb && cb({ ok: true });

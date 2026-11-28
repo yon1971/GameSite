@@ -48,7 +48,7 @@ module.exports = {
       takenId: null,
       over: false,
       winner: null,
-      log: [`${names[0]} starts. Draw a card.`],
+      log: [{ t: '{name} starts. Draw a card.', p: { name: names[0] } }],
     };
   },
 
@@ -69,7 +69,7 @@ module.exports = {
         hand.push(st.deck.pop());
         st.phase = 'play';
         st.takenId = null;
-        log(st, `${st.names[p]} drew from the stock.`);
+        log(st, '{name} drew from the stock.', { name: st.names[p] });
         break;
       }
       case 'drawDiscard': {
@@ -79,7 +79,7 @@ module.exports = {
         hand.push(c);
         st.phase = 'play';
         st.takenId = c.id;
-        log(st, `${st.names[p]} took ${cardName(c)} from the discard pile.`);
+        log(st, '{name} took {card} from the discard pile.', { name: st.names[p], card: cardName(c) });
         break;
       }
       case 'meld': {
@@ -91,7 +91,7 @@ module.exports = {
         if (!type) fail('That is not a valid set or run');
         takeCards(hand, ids);
         st.melds.push({ id: st.meldSeq++, type, owner: p, cards: sortMeld(cards, type) });
-        log(st, `${st.names[p]} laid down ${cards.map(cardName).join(' ')}.`);
+        log(st, '{name} laid down {cards}.', { name: st.names[p], cards: cards.map(cardName).join(' ') });
         if (!hand.length) finish(st, p);
         break;
       }
@@ -106,7 +106,7 @@ module.exports = {
         if (meldType(all) !== meld.type) fail('Those cards do not fit that meld');
         takeCards(hand, ids);
         meld.cards = sortMeld(all, meld.type);
-        log(st, `${st.names[p]} added ${cards.map(cardName).join(' ')} to a meld.`);
+        log(st, '{name} added {cards} to a meld.', { name: st.names[p], cards: cards.map(cardName).join(' ') });
         if (!hand.length) finish(st, p);
         break;
       }
@@ -117,7 +117,7 @@ module.exports = {
         if (c.id === st.takenId && hand.length > 1) fail('You cannot discard the card you just took');
         hand.splice(hand.indexOf(c), 1);
         st.discard.push(c);
-        log(st, `${st.names[p]} discarded ${cardName(c)}.`);
+        log(st, '{name} discarded {card}.', { name: st.names[p], card: cardName(c) });
         if (!hand.length) return finish(st, p);
         st.turn = (st.turn + 1) % st.names.length;
         st.phase = 'draw';
@@ -163,7 +163,7 @@ function finish(st, p) {
   st.over = true;
   st.winner = p;
   st.points = st.hands.reduce((s, h) => s + h.reduce((t, c) => t + value(c), 0), 0);
-  log(st, `${st.names[p]} went out and scores ${st.points} points!`);
+  log(st, '{name} went out and scores {n} points!', { name: st.names[p], n: st.points });
 }
 
 module.exports._test = { isSet, isRun };

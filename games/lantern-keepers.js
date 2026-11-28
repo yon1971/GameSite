@@ -1,4 +1,4 @@
-const { fail, log, shuffle } = require('./util');
+const { fail, log, tr, shuffle } = require('./util');
 
 const COLORS = ['amber', 'jade', 'azure', 'rose'];
 const COPIES = { 1: 3, 10: 1 }; // others 2
@@ -43,7 +43,7 @@ module.exports = {
       finalTurns: null,
       over: false,
       lastEvent: null,
-      log: [`${names[0]} goes first. Good luck, keepers!`],
+      log: [{ t: '{name} goes first. Good luck, keepers!', p: { name: names[0] } }],
     };
   },
 
@@ -66,7 +66,7 @@ module.exports = {
           if (c.color === a.color) c.hint.color = a.color;
           else if (!c.hint.notColors.includes(a.color)) c.hint.notColors.push(a.color);
         });
-        log(st, `${st.names[p]} told ${st.names[t]}: ${match.length} ${a.color} card${match.length > 1 ? 's' : ''}.`);
+        log(st, match.length > 1 ? '{a} told {b}: {n} {color} cards.' : '{a} told {b}: 1 {color} card.', { a: st.names[p], b: st.names[t], n: match.length, color: tr(a.color) });
       } else {
         const v = Number(a.value);
         match = th.filter((c) => c.v === v);
@@ -75,7 +75,7 @@ module.exports = {
           if (c.v === v) c.hint.v = v;
           else if (!c.hint.notValues.includes(v)) c.hint.notValues.push(v);
         });
-        log(st, `${st.names[p]} told ${st.names[t]}: ${match.length} card${match.length > 1 ? 's' : ''} numbered ${v}.`);
+        log(st, match.length > 1 ? '{a} told {b}: {n} cards numbered {v}.' : '{a} told {b}: 1 card numbered {v}.', { a: st.names[p], b: st.names[t], n: match.length, v });
       }
       st.sparks--;
       st.lastEvent = { type: 'hint', target: t, ids: match.map((c) => c.id) };
@@ -87,13 +87,13 @@ module.exports = {
       if (a.type === 'light') {
         if (st.lit[card.color] === card.v - 1) {
           st.lit[card.color] = card.v;
-          log(st, `${st.names[p]} lit ${card.color} ${card.v}!`);
+          log(st, '{name} lit {color} {v}!', { name: st.names[p], color: tr(card.color), v: card.v });
           if (card.v === 10 && st.sparks < MAX_SPARKS) st.sparks++;
           st.lastEvent = { type: 'lit', card };
         } else {
           st.gusts++;
           st.discards.push(card);
-          log(st, `A gust! ${st.names[p]}'s ${card.color} ${card.v} did not fit.`);
+          log(st, "A gust! {name}'s {color} {v} did not fit.", { name: st.names[p], color: tr(card.color), v: card.v });
           st.lastEvent = { type: 'gust', card };
           if (st.gusts >= MAX_GUSTS) {
             st.over = true;
@@ -105,7 +105,7 @@ module.exports = {
       } else {
         st.discards.push(card);
         st.sparks++;
-        log(st, `${st.names[p]} discarded ${card.color} ${card.v}.`);
+        log(st, '{name} discarded {color} {v}.', { name: st.names[p], color: tr(card.color), v: card.v });
         st.lastEvent = { type: 'discard', card };
       }
       if (st.deck.length) hand.push(st.deck.pop());
@@ -158,5 +158,5 @@ module.exports = {
 
 function end(st, msg) {
   st.over = true;
-  log(st, `${msg} Score: ${Object.values(st.lit).reduce((s, v) => s + v, 0)}.`);
+  log(st, '{msg} Score: {n}.', { msg: tr(msg), n: Object.values(st.lit).reduce((s, v) => s + v, 0) });
 }

@@ -4,25 +4,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&family=Rubik:wght@400;500;700;800&family=Varela+Round&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/css/style.css" />
 <meta name="theme-color" content="#1b1422" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>" />
-<title>Game Night Board</title>
+<title data-t-doc="Game Night Board">Game Night Board</title>
 </head>
 <body>
 <div class="board-wrap" id="boardWrap">
   <section class="stage" id="stage"></section>
   <aside class="board-side">
     <div class="join-row">
-      <div class="panel players-panel"><h3>Players</h3><div id="players"></div></div>
+      <div class="panel players-panel"><h3 data-t="Players">Players</h3><div id="players"></div></div>
       <div class="panel joinbox" id="joinbox"></div>
     </div>
     <div class="panel" id="controls"></div>
-    <div class="panel hidden" id="logbox"><h3>What happened</h3><div id="log"></div></div>
+    <div class="panel hidden" id="logbox"><h3 data-t="What happened">What happened</h3><div id="log"></div></div>
   </aside>
 </div>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/i18n/he.js"></script>
+<script src="/js/i18n.js"></script>
 <script src="/js/common.js"></script>
 <script src="/games/crazy-eights.js"></script>
 <script src="/games/rummy.js"></script>
