@@ -5,6 +5,19 @@ const express = require('express');
 const { Server } = require('socket.io');
 const QRCode = require('qrcode');
 const GAMES = require('./games');
+const { version: APP_VERSION } = require('./package.json');
+
+// Short commit hash of what's running: Render provides RENDER_GIT_COMMIT; locally fall back to git.
+function commitHash() {
+  const env = process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT;
+  if (env) return env.slice(0, 7);
+  try {
+    return require('child_process').execSync('git rev-parse --short HEAD', { cwd: __dirname, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch (e) {
+    return '';
+  }
+}
+const VERSION = { version: APP_VERSION, commit: commitHash(), started: new Date().toISOString() };
 
 const app = express();
 const server = http.createServer(app);
@@ -12,6 +25,7 @@ const io = new Server(server, { pingInterval: 10000, pingTimeout: 20000 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (req, res) => res.send('ok'));
+app.get('/api/version', (req, res) => res.json(VERSION));
 app.get('/api/games', (req, res) => res.json(Object.values(GAMES).map(gameInfo)));
 
 function gameInfo(g) {

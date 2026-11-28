@@ -83,3 +83,14 @@ U.fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.fl
 setInterval(() => {
   document.querySelectorAll('[data-deadline]').forEach((el) => { el.textContent = U.fmt(Number(el.dataset.deadline) - Date.now()); });
 }, 250);
+
+// Small version badge in the corner of every page, so you can tell which deploy is live.
+fetch('/api/version')
+  .then((r) => r.json())
+  .then((v) => {
+    const el = document.createElement('div');
+    el.className = 'version-badge';
+    el.textContent = 'v' + v.version + (v.commit ? ' · ' + v.commit : '');
+    document.body.appendChild(el);
+  })
+  .catch(() => {});
